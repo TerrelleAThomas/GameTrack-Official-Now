@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search Bar Page</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    /* Additional styles for the search bar */
+    body {
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      background-image: url('friends.jpg'); /* Replace with your image file path */
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
+
+    .search-container {
+      width: 80%;
+      max-width: 800px; /* Adjust the maximum width as needed */
+      text-align: center;
+      background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    .search-title {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #800080; /* Purple color */
+    }
+
+    .custom-search-bar {
+      width: 100%; /* Adjust the width as needed */
+      max-width: 600px; /* Set a maximum width if desired */
+      margin-bottom: 20px;
+    }
+
+    .custom-search-btn {
+      background-color: #800080; /* Purple color */
+      border-color: #800080; /* Purple color */
+      color: #fff; /* White text */
+      height: 38px; /* Adjust the height as needed */
+      width: 120px; /* Adjust the width as needed */
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container search-container">
+    <h2 class="search-title">Search</h2>
+    <form class="d-flex" role="search">
+      <input class="form-control me-2 custom-search-bar" type="search" placeholder="Type your search here" aria-label="Search">
+      <button class="btn btn-outline-primary custom-search-btn" type="submit">Search</button>
+    </form>
+  </div>
+
+  <!-- Bootstrap JS and jQuery (optional, for some Bootstrap functionalities) -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

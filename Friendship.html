@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friendship Page</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 50px;
+        }
+        .friend-card {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="mb-4">Friendship Page</h2>
+        <div class="row" id="friend-cards">
+            <!-- Friend Cards Will be Added Here -->
+            <!-- Example Friend Card 1 -->
+            <div class="col-md-6">
+                <div class="friend-card">
+                    <div class="row align-items-center">
+                        <div class="col-8">
+                            <h5>John Doe</h5>
+                            <p>Email: john@example.com</p>
+                            <p>Location: New York, USA</p>
+                        </div>
+                        <div class="col-4 text-right">
+                            <button class="btn btn-danger mr-2" onclick="deleteFriend('John Doe')">Delete</button>
+                            <button class="btn btn-success mr-2" onclick="acceptRequest('John Doe')">Accept</button>
+                            <button class="btn btn-secondary mr-2" onclick="rejectRequest('John Doe')">Reject</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End of Example Friend Card 1 -->
+
+            <!-- Example Friend Card 2 -->
+            <div class="col-md-6">
+                <div class="friend-card">
+                    <div class="row align-items-center">
+                        <div class="col-8">
+                            <h5>Jane Smith</h5>
+                            <p>Email: jane@example.com</p>
+                            <p>Location: Los Angeles, USA</p>
+                        </div>
+                        <div class="col-4 text-right">
+                            <button class="btn btn-danger mr-2" onclick="deleteFriend('Jane Smith')">Delete</button>
+                            <button class="btn btn-success mr-2" onclick="acceptRequest('Jane Smith')">Accept</button>
+                            <button class="btn btn-secondary mr-2" onclick="rejectRequest('Jane Smith')">Reject</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End of Example Friend Card 2 -->
+
+            <!-- Repeat the above structure for more friend cards -->
+
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database.js"></script>
+
+    <!-- Custom JavaScript -->
+    <script>
+        // Initialize Firebase
+        const firebaseConfig = {
+            // Your Firebase configuration
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        // Reference to the friends collection
+        const friendsRef = firebase.database().ref('friends');
+
+        // Function to render friend cards
+        function renderFriendCards(data) {
+            const friendCardsContainer = document.getElementById('friend-cards');
+            friendCardsContainer.innerHTML = ''; // Clear existing cards
+            data.forEach(friend => {
+                const friendCard = `
+                    <div class="col-md-6">
+                        <div class="friend-card">
+                            <div class="row align-items-center">
+                                <div class="col-8">
+                                    <h5>${friend.username}</h5>
+                                    <p>Email: ${friend.email}</p>
+                                    <p>Location: ${friend.location}</p>
+                                </div>
+                                <div class="col-4 text-right">
+                                    <button class="btn btn-danger mr-2" onclick="deleteFriend('${friend.username}')">Delete</button>
+                                    <button class="btn btn-success mr-2" onclick="acceptRequest('${friend.username}')">Accept</button>
+                                    <button class="btn btn-secondary mr-2" onclick="rejectRequest('${friend.username}')">Reject</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                friendCardsContainer.innerHTML += friendCard;
+            });
+        }
+
+        // Fetch friends data from Firebase
+        friendsRef.once('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                const friendList = Object.values(data);
+                renderFriendCards(friendList);
+            }
+        });
+
+        // Function to delete a friend
+        function deleteFriend(username) {
+            // Implement logic to delete the friend with the specified username from Firebase
+            console.log("Deleting friend: " + username);
+        }
+
+        // Function to accept a friend request
+        function acceptRequest(username) {
+            // Implement logic to accept the friend request from the specified username in Firebase
+            console.log("Accepting friend request from: " + username);
+        }
+
+        // Function to reject a friend request
+        function rejectRequest(username) {
+            // Implement logic to reject the friend request from the specified username in Firebase
+            console.log("Rejecting friend request from: " + username);
+        }
+    </script>
+</body>
+</html>

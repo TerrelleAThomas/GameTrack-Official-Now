@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Posts and Comments</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet"> <!-- Custom CSS -->
+</head>
+<body>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="post-creation-panel">
+                <h2>Create a Post</h2>
+                <textarea class="form-control mb-2" id="postContent" rows="3" placeholder="What's on your mind?"></textarea>
+                <button class="btn btn-primary" id="postSubmit">Post</button>
+            </div>
+            <div id="postsContainer" class="mt-4">
+                <!-- Posts and comments will be added dynamically here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="script.js"></script> <!-- Your JavaScript file -->
+
+</body>
+</html>

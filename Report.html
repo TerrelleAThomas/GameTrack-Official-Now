@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Reports</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-image: url('admin_reports_bg.jpg');
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            color: #fff;
+        }
+
+        .container {
+            margin-top: 50px;
+        }
+
+        .report-card {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .report-results {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="report-card">
+                <h2 class="text-center mb-4">Admin Reports</h2>
+
+                <!-- Report: Total number of times a game has been played -->
+                <div class="report-results">
+                    <h4>Report: Total number of times a game has been played</h4>
+                    <p>Time Period: January 1, 2023 - April 18, 2023</p>
+                    <p>Total Plays: <span id="totalPlays">0</span></p>
+                </div>
+
+                <!-- Report: Total number of posts for a time period -->
+                <div class="report-results">
+                    <h4>Report: Total number of posts for a time period</h4>
+                    <p>Time Period: January 18, 2023 - April 18, 2023</p>
+                    <p>Total Posts: <span id="totalPosts">0</span></p>
+                </div>
+
+                <!-- Report Form -->
+                <form>
+                    <div class="form-group">
+                        <label for="startDate">Start Date:</label>
+                        <input type="date" class="form-control" id="startDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="endDate">End Date:</label>
+                        <input type="date" class="form-control" id="endDate" required>
+                    </div>
+                    <!-- Generate Reports Button -->
+                    <button type="button" class="btn btn-primary btn-block" onclick="generateReports()">Generate Reports</button>
+                </form>
+            </div>
+
+            <a href="admin-dashboard.html" class="btn btn-secondary btn-block">Back to Admin Dashboard</a>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS and jQuery -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+<!-- Firebase SDK (Include Firebase SDK script here) -->
+
+<script>
+    function generateReports() {
+        // Assume you have Firebase SDK loaded, and you can interact with Firebase to fetch reports
+        // Replace the following logic with your actual implementation
+
+        // Get input values
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+
+        // Fetch game play report
+        const gamePlayReport = fetchGamePlayReport(startDate, endDate);
+        document.getElementById('totalPlays').innerText = gamePlayReport.totalPlays;
+
+        // Fetch post report
+        const postReport = fetchPostReport(startDate, endDate);
+        document.getElementById('totalPosts').innerText = postReport.totalPosts;
+    }
+
+    // Replace the following functions with your actual logic to fetch reports from Firebase
+    function fetchGamePlayReport(startDate, endDate) {
+        // Example: Fetch game play report from Firebase
+        // Use startDate and endDate in your query to fetch data within the specified time period
+        return {
+            totalPlays: 500, // Replace with the actual total plays
+        };
+    }
+
+    function fetchPostReport(startDate, endDate) {
+        // Example: Fetch post report from Firebase
+        // Use startDate and endDate in your query to fetch data within the specified time period
+        return {
+            totalPosts: 1500, // Replace with the actual total posts
+        };
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Gamer Profile</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <style>
+        body {
+            padding-top: 60px;
+            padding-bottom: 30px; /* Added padding to the bottom */
+        }
+
+        .profile-header {
+            background: #343a40;
+            color: #ffffff;
+            text-align: center;
+            padding: 40px 0;
+            margin-bottom: 20px; /* Added margin to the bottom */
+        }
+
+        .profile-avatar {
+            border-radius: 50%;
+            max-width: 150px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <a class="navbar-brand" href="#">Gamer Network</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Profile</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="changeNavbarColor(event)">Pairing</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="changeNavbarColor(event)">Search</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="changeNavbarColor(event)">Comments</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="changeNavbarColor(event)">Posts</a>
+                </li>
+                <li class="nav-item ml-2">
+                    <!-- Remove "Delete Account" link from navbar -->
+                </li>
+                <li class="nav-item ml-2">
+                    <a class="nav-link" href="#">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Profile Header -->
+    <header class="profile-header">
+        <img src="https://placekitten.com/150/150" alt="Profile Avatar" class="profile-avatar">
+        <h2>User Name</h2>
+        <p>Email: user@example.com</p>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container mt-4 mb-4"> <!-- Added margin-top and margin-bottom to the container -->
+        <div class="row">
+            <div class="col-md-8">
+                <!-- User's Posts -->
+                <h3>Your Posts</h3>
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Game Title 1</h5>
+                        <p class="card-text">Your thoughts on the game...</p>
+                        <a href="#" class="btn btn-primary">Edit</a>
+                        <a href="#" class="btn btn-danger">Delete</a>
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Game Title 2</h5>
+                        <p class="card-text">Your thoughts on the game...</p>
+                        <a href="#" class="btn btn-primary">Edit</a>
+                        <a href="#" class="btn btn-danger">Delete</a>
+                    </div>
+                </div>
+
+                <!-- Add more posts as needed -->
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-md-4">
+                <h3>Recommended Friends</h3>
+                <ul class="list-group">
+                    <li class="list-group-item" onclick="redirectToUserProfile('Friend1')">Friend 1</li>
+                    <li class="list-group-item" onclick="redirectToUserProfile('Friend2')">Friend 2</li>
+                    <li class="list-group-item" onclick="redirectToUserProfile('Friend3')">Friend 3</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Account Button -->
+    <div class="container">
+        <div class="row justify-content-center">
+            <button class="btn btn-danger" onclick="confirmDeleteAccount()">Delete Account</button>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Custom JavaScript -->
+    <script>
+        function changeNavbarColor(event) {
+            // You can customize the color here
+            document.querySelector('.navbar').style.backgroundColor = '#007bff';
+        }
+
+        function confirmDeleteAccount() {
+            const confirmMessage = "Are you sure you want to delete your account?";
+            if (window.confirm(confirmMessage)) {
+                // Implement account deletion logic here
+                alert("Account deleted successfully!");
+
+                // Redirect to the sign-up page after account deletion
+                window.location.href = 'signup.html';
+            } else {
+                alert("Account deletion canceled.");
+                // Additional actions when the user cancels the account deletion can be added here
+            }
+        }
+
+        function redirectToUserProfile(friendName) {
+            // Redirect to the user profile page based on the friend's name
+            window.location.href = 'userProfile.html?name=' + friendName;
+        }
+    </script>
+</body>
+
+</html>

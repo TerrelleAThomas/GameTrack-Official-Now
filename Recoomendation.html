@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recommended Games</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 50px;
+            color: #212529;
+        }
+        .card {
+            margin-bottom: 20px;
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container mt-5">
+    <h2 class="mb-4">Recommended Games</h2>
+
+    <div class="row" id="gameList">
+        <!-- Game cards will be dynamically added here -->
+    </div>
+</div>
+
+<!-- Bootstrap JS and jQuery -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js"></script>
+
+<script>
+    // Firebase configuration
+    const firebaseConfig = {
+        // Your Firebase configuration
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    // Function to fetch game recommendations from Firebase
+    function fetchGameRecommendations() {
+        const gamesRef = firebase.database().ref('games');
+        gamesRef.once('value', (snapshot) => {
+            const games = snapshot.val();
+            if (games) {
+                Object.values(games).forEach(game => {
+                    addGameCard(game);
+                });
+            }
+        });
+    }
+
+    // Function to add a game card dynamically
+    function addGameCard(game) {
+        const gameList = document.getElementById('gameList');
+        const cardHtml = `
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <img src="${game.image}" class="card-img-top" alt="${game.title}">
+                    <div class="card-body">
+                        <h5 class="card-title">${game.title}</h5>
+                        <p class="card-text">Release Date: ${game.releaseDate}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        gameList.innerHTML += cardHtml;
+    }
+
+    // Call the function to fetch game recommendations when the page loads
+    window.onload = fetchGameRecommendations;
+</script>
+
+</body>
+</html>
