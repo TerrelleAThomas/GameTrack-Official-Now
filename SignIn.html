@@ -8,63 +8,114 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         body {
-          background-image: url('Channel.png');
-          background-size: cover;
-          background-repeat: no-repeat;
-          background-attachment: fixed;
-          font-family: Arial, sans-serif;
-          color: #fff; /* Set default text color to white */
+            background-image: url('Channel.png'); /* Adjust as necessary */
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            font-family: Arial, sans-serif;
+            color: #fff;
         }
-        .quote,
-        h1,
-        .login-header {
-          color: #fff; /* Set text color to white */
-        }
-        .space-after-login-form {
-          margin-top: 20px;
-        }
-        /* Additional styles for centering and spacing */
         .login-container {
-          background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-          padding: 40px; /* Increased padding */
-          border-radius: 8px; /* Rounded corners */
-          margin-top: 50px; /* Additional top space */
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 40px;
+            border-radius: 8px;
+            margin-top: 50px;
         }
         .centered-quote {
-          text-align: center;
-          margin-top: 20px;
-          margin-bottom: 40px; /* Increased spacing around the quote */
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 40px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-8 login-container">
-                <h1 class="text-center mb-4">GamTracker</h1>
-                <!-- Centered quote with added margin for more space -->
-                <p class="quote centered-quote">“Boss… you were right. It’s not about changing the world. It’s about doing our best to leave the world… the way it is. It’s about respecting the will of others and believing in your own.”</p>
-                <form id="signupForm">
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" class="form-control" id="email" placeholder="Enter your email">
-                    </div>
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <input type="password" class="form-control" id="password" placeholder="Enter your password">
-                    </div>
-                    <button type="submit" class="btn btn-outline-primary btn-block">Sign Up</button>
-                </form>
-                <div class="space-after-login-form">
-                    <!-- Space for additional elements or a message -->
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 login-container">
+            <h1 class="text-center mb-4">GameTrack</h1>
+            <p class="quote centered-quote">“Boss… you were right. It’s not about changing the world. It’s about doing our best to leave the world… the way it is. It’s about respecting the will of others and believing in your own.”</p>
+            <form id="signupForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" class="form-control" id="username" placeholder="Choose a username" required>
                 </div>
-            </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" class="form-control" id="email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" class="form-control" id="password" placeholder="Enter your password" required>
+                </div>
+                <div class="form-group">
+                    <label for="gameConsole">Game Console</label>
+                    <select class="form-control" id="gameConsole" required>
+                        <option value="">Select your console</option>
+                        <option value="PS4">PS4</option>
+                        <option value="XboxOne">Xbox One</option>
+                        <option value="NintendoSwitch">Nintendo Switch</option>
+                        <!-- Additional options can be added here -->
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-outline-primary btn-block">Sign Up</button>
+            </form>
         </div>
     </div>
-    <!-- Optional JavaScript -->
-    <!-- jQuery and Bootstrap Bundle (includes Popper) -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+<script>
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyD18a6bP6Ec0QCsLm5bl04prN_WAchA4Is",
+        authDomain: "gamtrack-3a2f2.firebaseapp.com",
+        projectId: "gamtrack-3a2f2",
+        storageBucket: "gamtrack-3a2f2.appspot.com",
+        messagingSenderId: "492662811532",
+        appId: "1:492662811532:web:4e59f354ffbc43eee384a9",
+        measurementId: "G-5VTT1HQLJ1"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    document.getElementById('signupForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const username = document.getElementById('username').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const gameConsole = document.getElementById('gameConsole').value;
+
+        auth.createUserWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                return db.collection("User").doc(userCredential.user.uid).set({
+                    id: userCredential.user.uid,
+                    username: username,
+                    email: email,
+                    gameConsole: gameConsole,
+                    isActive: true,
+                    isAdmin: false,
+                    isSiteAdmin: false,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            })
+            .then(() => {
+                window.location.href = 'About us.html'; // Make sure the path to your About Us page is correct
+            })
+            .catch((error) => {
+                console.error("Error: ", error);
+                alert("Signup failed: " + error.message);
+            });
+    });
+</script>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

@@ -1,0 +1,17 @@
+{
+  "name": "gametrack-official",
+  "version": "1.0.0",
+  "description": "",
+  "main": "FirebaseConfig.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TerrelleAThomas/GameTrack-Official-Now.git"
+  },
+  "private": true,
+  "dependencies": {
+    "firebase": "^10.8.1"
+  }
+}
