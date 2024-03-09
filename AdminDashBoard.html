@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #ececec; /* Change as per your color preference */
+        }
+
+        .dashboard-container {
+            text-align: center;
+            background: #fff; /* Background of the panel */
+            padding: 2rem;
+            border-radius: 15px; /* Rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Shadow for depth */
+            width: 90%; /* Percentage of the viewport width */
+            max-width: 1000px; /* Increased maximum width */
+            margin: auto;
+        }
+
+        .dashboard-title {
+            font-size: 2.5rem; /* Title size */
+            margin-bottom: 1rem; /* Spacing under title */
+            color: #333; /* Title color */
+        }
+
+        .dashboard-image {
+            width: 100%; /* Image width */
+            height: auto; /* Image height */
+            margin-bottom: 1rem; /* Spacing under image */
+            border-radius: 15px; /* Rounded corners for image */
+        }
+
+        .dashboard-buttons .btn {
+            width: 100%; /* Full width buttons */
+            margin-bottom: 0.5rem; /* Spacing between buttons */
+            padding: 10px 0; /* Bigger buttons */
+        }
+
+        .dashboard-buttons .btn:last-child {
+            margin-bottom: 0; /* No margin for the last button */
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard-container">
+    <div class="dashboard-title">Admin Dashboard</div>
+    <img src="path-to-your-image.jpg" alt="Admin Image" class="dashboard-image">
+    <div class="dashboard-buttons">
+        <a href="User.html" class="btn btn-primary btn-lg mb-3">User</a>
+        <a href="Search.html" class="btn btn-info btn-lg mb-3">Search</a>
+        <a href="Report.html" class="btn btn-secondary btn-lg mb-3">Report</a>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

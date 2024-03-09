@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GamTracker Login</title>
+    <title>GameTracker Login</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-auth.js"></script>
@@ -30,20 +30,20 @@
         }
 
         .form-container {
-            background-color: rgba(255, 255, 255, 0.95); /* Increase the opacity */
+            background-color: rgba(255, 255, 255, 0.95); /* Increase opacity */
             padding: 30px;
             border-radius: 10px;
-            max-width: 400px; /* Set a max-width for larger screens */
-            width: 100%; /* Make it responsive */
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional: Adds a subtle shadow */
+            max-width: 400px; /* Set max-width for larger screens */
+            width: 100%; /* Make responsive */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional: subtle shadow */
         }
 
         .form-control {
-            margin-bottom: 1rem; /* Add some space below the input */
+            margin-bottom: 1rem; /* Space below input */
         }
 
         .btn-block {
-            padding: 10px; /* Increase padding for better touch area */
+            padding: 10px; /* Better touch area */
         }
     </style>
 </head>
@@ -53,7 +53,7 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-sm-10 col-md-8 col-lg-6 form-container">
-                <h1 class="text-center mb-4">GameTracker</h1>
+                <h1 class="text-center mb-4">GameTracker Login</h1>
                 <form id="loginForm">
                     <div class="form-group mb-3">
                         <label for="email">Email</label>
@@ -73,12 +73,13 @@
 <script>
     // Your Firebase configuration
     var firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_AUTH_DOMAIN",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_STORAGE_BUCKET",
-        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-        appId: "YOUR_APP_ID"
+        apiKey: "AIzaSyD18a6bP6Ec0QCsLm5bl04prN_WAchA4Is",
+        authDomain: "gamtrack-3a2f2.firebaseapp.com",
+        projectId: "gamtrack-3a2f2",
+        storageBucket: "gamtrack-3a2f2.appspot.com",
+        messagingSenderId: "492662811532",
+        appId: "1:492662811532:web:4e59f354ffbc43eee384a9",
+        measurementId: "G-5VTT1HQLJ1"
     };
     firebase.initializeApp(firebaseConfig);
     var firestore = firebase.firestore();
@@ -91,17 +92,21 @@
         firebase.auth().signInWithEmailAndPassword(email, password)
             .then((userCredential) => {
                 const userId = userCredential.user.uid;
-                return firestore.collection('users').doc(userId).get();
+                return firestore.collection('User').doc(userId).get();
             })
             .then((doc) => {
                 if (!doc.exists) {
                     console.log('No such document!');
                 } else {
-                    const userRole = doc.data().role;
-                    if (userRole === 'Admin' || userRole === 'SiteAdmin') {
-                        window.location.href = '/dashboard.html';
+                    const isAdmin = doc.data().isAdmin;
+                    const isSiteAdmin = doc.data().isSiteAdmin;
+
+                    if (isAdmin && !isSiteAdmin) {
+                        window.location.href = '/AdminDashBoard.html';// Admin Dashboard URL
+                    } else if (isSiteAdmin && !isAdmin) {
+                        window.location.href = '/Site Admin.html'; // Site Admin Dashboard URL
                     } else {
-                        window.location.href = '/profile.html';
+                        window.location.href = '/UserProfile.html'; // Default Profile Page
                     }
                 }
             })
