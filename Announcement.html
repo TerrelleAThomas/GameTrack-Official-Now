@@ -8,13 +8,13 @@
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-image: url('announcement_bg.jpg'); /* Add the path to your background image */
+            background-image: url('Announcement.jpg');
             background-size: cover;
             background-position: center;
             height: 100vh;
             margin: 0;
             padding: 0;
-            color: #fff; /* White text */
+            color: #008000;
         }
 
         .container {
@@ -44,7 +44,7 @@
         <div class="col-md-8">
             <div class="announcement-form">
                 <h2 class="text-center mb-4">Create Announcement</h2>
-                <form>
+                <form id="announcementForm">
                     <div class="form-group">
                         <label for="announcementTitle">Announcement Title:</label>
                         <input type="text" class="form-control" id="announcementTitle" required>
@@ -57,36 +57,84 @@
                 </form>
             </div>
 
-            <div class="announcement-list">
+            <div class="announcement-list" id="announcementList">
                 <h2 class="text-center mb-4">Announcements</h2>
-                <!-- Example Announcement Card (Repeat for each announcement) -->
-                <div class="announcement-card">
-                    <h5>Announcement Title 1</h5>
-                    <p>Announcement content goes here...</p>
-                    <small>Posted on: January 15, 2023</small>
-                </div>
-                <!-- End of Example Announcement Card -->
-
-                <!-- Repeat the above card structure for each announcement -->
+                <!-- Announcements will be loaded here dynamically -->
             </div>
 
-            <div class="announcement-list">
-                <h2 class="text-center mb-4">Deleted Announcements</h2>
-                <!-- Example Deleted Announcement Card (Repeat for each deleted announcement) -->
-                <div class="announcement-card">
-                    <h5>Deleted Announcement Title 1</h5>
-                    <p>Deleted announcement content goes here...</p>
-                    <small>Deleted on: January 20, 2023</small>
-                </div>
-                <!-- End of Example Deleted Announcement Card -->
-
-                <!-- Repeat the above card structure for each deleted announcement -->
-            </div>
-
-            <a href="admin-dashboard.html" class="btn btn-secondary btn-block">Back to Admin Dashboard</a>
+            <a href="Site Admin.html" class="btn btn-secondary btn-block">Back to Admin Dashboard</a>
         </div>
     </div>
 </div>
+
+<!-- Firebase Configuration -->
+<script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-firestore.js"></script>
+<script>
+    var firebaseConfig = {
+        apiKey: "AIzaSyD18a6bP6Ec0QCsLm5bl04prN_WAchA4Is",
+        authDomain: "gamtrack-3a2f2.firebaseapp.com",
+        projectId: "gamtrack-3a2f2",
+        storageBucket: "gamtrack-3a2f2.appspot.com",
+        messagingSenderId: "492662811532",
+        appId: "1:492662811532:web:4e59f354ffbc43eee384a9",
+        measurementId: "G-5VTT1HQLJ1"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    const db = firebase.firestore();
+
+    document.getElementById('announcementForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const title = document.getElementById('announcementTitle').value;
+        const content = document.getElementById('announcementContent').value;
+        const dateCreated = new Date(); // Now using 'dateCreated' instead of 'timestamp'
+
+        db.collection("Announcement").add({
+            AnnouncementTitle: title,
+            AnnouncementContent: content,
+            DateCreated: dateCreated // Renamed field here
+        })
+            .then(function(docRef) {
+                console.log("Document written with ID: ", docRef.id);
+                loadAnnouncements(); // Reload announcements
+                // Clear the form
+                document.getElementById('announcementTitle').value = '';
+                document.getElementById('announcementContent').value = '';
+            })
+            .catch(function(error) {
+                console.error("Error adding document: ", error);
+            });
+    });
+
+    function loadAnnouncements() {
+        db.collection("Announcement").orderBy("DateCreated", "desc").get().then((querySnapshot) => {
+            let announcementsHtml = '';
+            querySnapshot.forEach((doc) => {
+                announcementsHtml += `<div class="announcement-card">
+          <h5>${doc.data().AnnouncementTitle}</h5>
+          <p>${doc.data().AnnouncementContent}</p>
+          <small>Posted on: ${doc.data().DateCreated.toDate().toLocaleDateString()}</small>
+          <button onclick="deleteAnnouncement('${doc.id}')" class="btn btn-danger">Delete</button>
+        </div>`;
+            });
+            document.getElementById('announcementList').innerHTML = announcementsHtml;
+        });
+    }
+
+    function deleteAnnouncement(id) {
+        db.collection("Announcement").doc(id).delete().then(() => {
+            console.log("Document successfully deleted!");
+            loadAnnouncements(); // Refresh the list after deletion
+        }).catch((error) => {
+            console.error("Error removing document: ", error);
+        });
+    }
+
+    // Initially load the announcements
+    loadAnnouncements();
+</script>
 
 <!-- Bootstrap JS and jQuery -->
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>

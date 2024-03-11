@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Friend Requests</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Internal CSS for background image -->
+  <style>
+    body {
+      background-image: url('Games.jpg'); /* Ensure the image file is in the right path */
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      background-position: center center;
+    }
+    .container {
+      background-color: rgba(255, 255, 255, 0.8); /* White background with opacity */
+      border-radius: 15px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Search for Users</h2>
+  <div class="input-group mb-3">
+    <input type="text" id="searchUser" class="form-control" placeholder="Enter username to search">
+    <div class="input-group-append">
+      <button class="btn btn-outline-secondary" type="button" onclick="searchUsers()">Search</button>
+    </div>
+  </div>
+  <div id="userList" class="list-group">
+    <!-- Search results will be loaded here dynamically -->
+  </div>
+</div>
+
+<!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+<!-- Add Firebase products that you want to use -->
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+
+<script>
+  // Your web app's Firebase configuration
+  import firebase from "firebase/compat";
+
+  var firebaseConfig = {
+    apiKey: "AIzaSyD18a6bP6Ec0QCsLm5bl04prN_WAchA4Is",
+    authDomain: "gamtrack-3a2f2.firebaseapp.com",
+    projectId: "gamtrack-3a2f2",
+    storageBucket: "gamtrack-3a2f2.appspot.com",
+    messagingSenderId: "492662811532",
+    appId: "1:492662811532:web:4e59f354ffbc43eee384a9",
+    measurementId: "G-5VTT1HQLJ1"
+  };
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  var db = firebase.firestore();
+
+  function searchUsers() {
+    const searchValue = document.getElementById('searchUser').value.toLowerCase();
+    const userList = document.getElementById('userList');
+    userList.innerHTML = ''; // Clear the current list
+
+    if (!searchValue.trim()) {
+      const noResultItem = document.createElement('li');
+      noResultItem.classList.add('list-group-item');
+      noResultItem.textContent = 'Please enter a username to search.';
+      userList.appendChild(noResultItem);
+      return;
+    }
+
+    db.collection('User')
+            .where('username', '==', searchValue)
+            .get()
+            .then(querySnapshot => {
+              if (querySnapshot.empty) {
+                const noResultItem = document.createElement('li');
+                noResultItem.classList.add('list-group-item');
+                noResultItem.textContent = 'No users found with that username.';
+                userList.appendChild(noResultItem);
+              } else {
+                querySnapshot.forEach(doc => {
+                  const userData = doc.data();
+                  const userItem = document.createElement('li');
+                  userItem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
+                  userItem.innerHTML = `
+              ${userData.username} <!-- Field for user's username -->
+              <button class="btn btn-primary" onclick="sendFriendRequest('${firebase.auth().currentUser.uid}', '${doc.id}')">Add Friend</button>
+            `;
+                  userList.appendChild(userItem);
+                });
+              }
+            })
+            .catch(error => {
+              console.error('Error searching for users:', error);
+            });
+  }
+
+  function sendFriendRequest(userId1, userId2) {
+    // Generate a pseudo-random ID for the friendship
+    var friendshipId = 'friend_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+
+    var friendRequestData = {
+      Status: 'pending',
+      userId1: userId1,
+      userId2: userId2,
+      FriendshipId: friendshipId
+    };
+
+    // Add a new document with a generated ID to the Friendship collection
+    db.collection('Friendship').add(friendRequestData)
+            .then(docRef => {
+              console.log('Friend request sent with ID:', docRef.id, 'FriendshipId:', friendshipId);
+            })
+            .catch(error => {
+              console.error('Error sending friend request:', error);
+            });
+  }
+</script>
+
+<!-- Bootstrap JS and dependencies -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
