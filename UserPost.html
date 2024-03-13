@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<!--suppress HtmlUnknownTarget -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Posts Page</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+        }
+        body {
+            background-image: url('puzzle.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 5px;
+            margin-top: 100px;
+            padding: 20px;
+        }
+        .comment {
+            background-color: #f8f9fa;
+            padding: 8px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .comment-body {
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <a class="navbar-brand" href="#">Gamer Network</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href="About us.html">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="UserProfile.html">Profile</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="Pairing Form.html" onclick="changeNavbarColor(event)">Pairing</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="Search Bar.html" onclick="changeNavbarColor(event)">Search</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="UserPost.html" onclick="changeNavbarColor(event)">Posts</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="Message.html" onclick="changeNavbarColor(event)">Messages</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="Request.html" onclick="changeNavbarColor(event)">Request</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="Notifcation.html" onclick="changeNavbarColor(event)">Notifications</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="Friendship.html" onclick="changeNavbarColor(event)">Friendship</a>
+            </li>
+            <li class="nav-item ml-2">
+                <a class="nav-link" href="Login In.html">Logout</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<div class="container">
+    <h2>Your Posts</h2>
+    <!-- Button trigger modal -->
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPostModal">
+        Add Post
+    </button>
+
+    <!-- Posts container -->
+    <div id="postContainer"></div>
+</div>
+
+<!-- Add Post Modal -->
+<div class="modal fade" id="addPostModal" tabindex="-1" aria-labelledby="addPostModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addPostModalLabel">Create a New Post</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="postTitle" class="form-control mb-2" placeholder="Title" required>
+                <textarea id="postContent" class="form-control" placeholder="Content" rows="4" required></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="addPost()">Post</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Firebase Setup -->
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+<script>
+    import firebase from "firebase/compat";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyD18a6bP6Ec0QCsLm5bl04prN_WAchA4Is",
+        authDomain: "gamtrack-3a2f2.firebaseapp.com",
+        projectId: "gamtrack-3a2f2",
+        storageBucket: "gamtrack-3a2f2.appspot.com",
+        messagingSenderId: "492662811532",
+        appId: "1:492662811532:web:4e59f354ffbc43eee384a9",
+        measurementId: "G-5VTT1HQLJ1"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadPosts();
+    });
+
+    function addPost() {
+        const title = document.getElementById('postTitle').value.trim();
+        const content = document.getElementById('postContent').value.trim();
+        // Replace with the current user's ID from Firebase Authentication
+        const userId = firebase.auth().currentUser.uid;
+        // If you're handling games, replace with the game ID
+        const gameId = "gameIdPlaceholder";
+
+        if (title && content) {
+            db.collection("Post").add({
+                Title: title,
+                content: content,
+                creationDate: firebase.firestore.FieldValue.serverTimestamp(),
+                UpdateDate: firebase.firestore.FieldValue.serverTimestamp(),
+                DeleteDate: null,
+                userId: userId,
+                gameId: gameId
+            })
+                .then(function(docRef) {
+                    document.getElementById('postTitle').value = '';
+                    document.getElementById('postContent').value = '';
+                    $('#addPostModal').modal('hide');
+                    loadPosts();
+                })
+                .catch(function(error) {
+                    console.error("Error adding document: ", error);
+                });
+        } else {
+            alert("Please fill in both the title and content fields.");
+        }
+    }
+
+    function loadPosts() {
+        const postContainer = document.getElementById('postContainer');
+        postContainer.innerHTML = '';
+        db.collection("Post").orderBy("creationDate", "desc").get().then(function(querySnapshot) {
+            querySnapshot.forEach(function(doc) {
+                const post = doc.data();
+                const postId = doc.id;
+                const postElement = document.createElement('div');
+                postElement.innerHTML = `
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">${post.Title}</h5>
+                            <p class="card-text">${post.content}</p>
+                            <!-- Comments Section -->
+                            <div id="comments-${postId}"></div>
+                            <input type="text" id="comment-input-${postId}" class="form-control" placeholder="Write a comment...">
+                            <button onclick="submitComment('${postId}')" class="btn btn-primary">Comment</button>
+                        </div>
+                    </div>
+                `;
+                postContainer.appendChild(postElement);
+                loadComments(postId);
+            });
+        });
+    }
+
+    function submitComment(postId) {
+        const commentInput = document.getElementById(`comment-input-${postId}`);
+        const comment = commentInput.value.trim();
+        // Replace with the current user's ID from Firebase Authentication
+        const userId = firebase.auth().currentUser.uid;
+
+        if (comment) {
+            db.collection("Comment").add({
+                postId: postId,
+                userId: userId,
+                comment: comment,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                commentInput.value = '';
+                loadComments(postId);
+            }).catch((error) => {
+                console.error("Error adding comment: ", error);
+            });
+        }
+    }
+
+    function loadComments(postId) {
+        const commentsContainer = document.getElementById(`comments-${postId}`);
+        commentsContainer.innerHTML = '';
+        db.collection("Comment").where("postId", "==", postId).orderBy("timestamp").get().then(function(querySnapshot) {
+            querySnapshot.forEach(function(doc) {
+                const comment = doc.data();
+                const commentElement = document.createElement('div');
+                commentElement.classList.add('comment');
+                commentElement.innerHTML = `
+                    <div class="comment-body">
+                        ${comment.userId}: ${comment.comment}
+                        <button onclick="deleteComment('${doc.id}', '${postId}')" class="btn btn-link btn-sm">Delete</button>
+                    </div>
+                `;
+                commentsContainer.appendChild(commentElement);
+            });
+        });
+    }
+
+    function deleteComment(commentId, postId) {
+        db.collection("Comment").doc(commentId).delete().then(() => {
+            loadComments(postId);
+        }).catch((error) => {
+            console.error("Error removing comment: ", error);
+        });
+    }
+
+    // Replace with your actual function to handle user authentication
+    function checkAuthState() {
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user) {
+                console.log("User is signed in");
+                // User is signed in, see docs for a list of available properties
+                // https://firebase.google.com/docs/reference/js/firebase.User
+                var uid = user.uid;
+            } else {
+                console.log("No user is signed in");
+                // No user is signed in.
+            }
+        });
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

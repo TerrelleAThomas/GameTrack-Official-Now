@@ -4,39 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game Management</title>
-    <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-firestore.js"></script>
     <style>
         body {
-            background-image: url('game_management_bg.jpg'); /* Add the path to your background image */
+            background-image: url('Game Style.jpg');
             background-size: cover;
             background-position: center;
             height: 100vh;
             margin: 0;
             padding: 0;
-            color: #fff; /* White text */
+            color: #fff;
         }
-
         .container {
             margin-top: 50px;
         }
-
-        .game-list {
+        .game-list,
+        .admin-form {
             background-color: rgba(0, 0, 0, 0.7);
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 20px;
         }
-
         .game-card {
             background-color: rgba(255, 255, 255, 0.9);
             border-radius: 10px;
             margin-bottom: 20px;
             padding: 15px;
+            color: #333;
         }
-
         .search-bar {
             margin-bottom: 20px;
+        }
+        .admin-form input,
+        .admin-form textarea,
+        .admin-form button {
+            margin-bottom: 10px;
+            width: 100%;
         }
     </style>
 </head>
@@ -47,51 +52,147 @@
         <div class="col-md-8">
             <div class="game-list">
                 <h2 class="text-center mb-4">Game Management</h2>
-
-                <!-- Search Bar -->
+                <div class="admin-form">
+                    <input type="text" id="game-title" placeholder="Title" required />
+                    <textarea id="game-description" placeholder="Description"></textarea>
+                    <input type="text" id="game-genre" placeholder="Genre" required />
+                    <input type="datetime-local" id="game-release-date" placeholder="Release Date" required />
+                    <input type="hidden" id="game-id" />
+                    <button class="btn btn-primary" onclick="addOrUpdateGame()">Add/Update Game</button>
+                </div>
                 <div class="input-group mb-3 search-bar">
                     <input type="text" class="form-control" placeholder="Search for games..." aria-label="Search" aria-describedby="search-btn">
                     <div class="input-group-append">
                         <button class="btn btn-outline-secondary" type="button" id="search-btn">Search</button>
                     </div>
                 </div>
-                
-                <!-- Example Game Card (Repeat for each game) -->
-                <div class="game-card">
-                    <h5>Game Title</h5>
-                    <p>Description of the game goes here...</p>
-                    <small>Release Date: January 1, 2022</small>
-                    <div class="text-right">
-                        <button class="btn btn-danger" onclick="deleteGame(this)">Delete</button>
-                    </div>
-                </div>
-                <!-- End of Example Game Card -->
-
-                <!-- Repeat the above card structure for each game -->
             </div>
-
-            <a href="admin-dashboard.html" class="btn btn-secondary btn-block">Back to Admin Dashboard</a>
+            <a href="Site Admin.html" class="btn btn-secondary btn-block">Back to Dashboard</a>
         </div>
     </div>
 </div>
 
-<!-- Bootstrap JS and jQuery -->
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-
 <script>
-    function deleteGame(button) {
-        // Logic to delete the game
-        button.closest('.game-card').remove();
-        notifyUser('The game has been deleted.');
+    var firebaseConfig = {
+        apiKey: "AIzaSyD18a6bP6Ec0QCsLm5bl04prN_WAchA4Is",
+        authDomain: "gamtrack-3a2f2.firebaseapp.com",
+        projectId: "gamtrack-3a2f2",
+        storageBucket: "gamtrack-3a2f2.appspot.com",
+        messagingSenderId: "492662811532",
+        appId: "1:492662811532:web:4e59f354ffbc43eee384a9",
+        measurementId: "G-5VTT1HQLJ1"
+    };
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.firestore();
+
+    function addOrUpdateGame() {
+        var gameId = document.getElementById('game-id').value;
+        var title = document.getElementById('game-title').value;
+        var description = document.getElementById('game-description').value;
+        var genre = document.getElementById('game-genre').value;
+        var releaseDate = document.getElementById('game-release-date').value;
+
+        if (gameId) {
+            updateGame(gameId, title, description, genre, releaseDate);
+        } else {
+            addGame(title, description, genre, releaseDate);
+        }
     }
 
-    function notifyUser(message) {
-        alert(message);
-        // You can customize the notification method (e.g., modal, toast) based on your UI design
+    function addGame(title, description, genre, releaseDate) {
+        db.collection("Game").add({
+            Title: title,
+            Description: description,
+            Genre: genre,
+            ReleaseDate: releaseDate
+        })
+            .then(function(docRef) {
+                alert('Game added with ID: ' + docRef.id);
+                clearForm();
+            })
+            .catch(function(error) {
+                alert('Error adding game: ' + error.message);
+            });
+    }
+
+    function updateGame(gameId, title, description, genre, releaseDate) {
+        db.collection("Game").doc(gameId).set({
+            Title: title,
+            Description: description,
+            Genre: genre,
+            ReleaseDate: releaseDate
+        })
+            .then(function() {
+                alert('Game updated with ID: ' + gameId);
+                clearForm();
+            })
+            .catch(function(error) {
+                alert('Error updating game: ' + error.message);
+            });
+    }
+
+    function deleteGame(gameId) {
+        db.collection("Game").doc(gameId).delete().then(function() {
+            document.getElementById('card-' + gameId).remove();
+            alert('Game deleted');
+        }).catch(function(error) {
+            alert('Error deleting game: ' + error.message);
+        });
+    }
+
+    db.collection("Game").onSnapshot(function(snapshot) {
+        snapshot.docChanges().forEach(function(change) {
+            if (change.type === "added") {
+                var gameData = change.doc.data();
+                gameData.id = change.doc.id;
+                addGameCard(gameData);
+            }
+        });
+    });
+
+    function addGameCard(gameData) {
+        var gameCardHtml = '<div class="game-card" id="card-' + gameData.id + '">'+
+            '<h5>' + gameData.Title + '</h5>'+
+            '<p>' + gameData.Description + '</p>'+
+            '<small>Genre: ' + gameData.Genre + '</small><br>'+
+            '<small>Release Date: ' + gameData.ReleaseDate + '</small>'+
+            '<div class="text-right">'+
+            '<button class="btn btn-info" onclick="populateFormForUpdate(\'' + gameData.id + '\')">Update</button>'+
+            '<button class="btn btn-danger" onclick="deleteGame(\'' + gameData.id + '\')">Delete</button>'+
+            '</div>'+
+            '</div>';
+        document.querySelector('.game-list').innerHTML += gameCardHtml;
+    }
+
+    function populateFormForUpdate(gameId) {
+        var docRef = db.collection("Game").doc(gameId);
+        docRef.get().then(function(doc) {
+            if (doc.exists) {
+                var gameData = doc.data();
+                document.getElementById('game-title').value = gameData.Title;
+                document.getElementById('game-description').value = gameData.Description;
+                document.getElementById('game-genre').value = gameData.Genre;
+                document.getElementById('game-release-date').value = gameData.ReleaseDate; // Adjust if a date format is different
+                document.getElementById('game-id').value = gameId;
+            } else {
+                alert("No such game!");
+            }
+        }).catch(function(error) {
+            alert("Error getting game:", error);
+        });
+    }
+
+    function clearForm() {
+        document.getElementById('game-title').value = '';
+        document.getElementById('game-description').value = '';
+        document.getElementById('game-genre').value = '';
+        document.getElementById('game-release-date').value = '';
+        document.getElementById('game-id').value = '';
     }
 </script>
 
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 </body>
 </html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gamer Connect Search</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-firestore.js"></script>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            background: url('3D.jpg') center center no-repeat;
+            background-size: cover;
+        }
+        .search-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            max-width: 650px; /* Set a max-width for the search container */
+        }
+        .search-box {
+            display: flex;
+            justify-content: center;
+            background: #fff;
+            border-radius: 40px;
+            box-shadow: 0 4px 6px rgba(0,0,0,.1);
+        }
+        .search-box .form-control {
+            border: none;
+            padding: 10px 20px;
+            border-radius: 40px 0 0 40px;
+            width: calc(100% - 40px); /* Subtract the button width */
+        }
+        .search-box .btn {
+            border: none;
+            border-radius: 0 40px 40px 0;
+            color: #ffffff;
+            padding: 10px 20px;
+            background: #4285f4; /* Google blue */
+            cursor: pointer;
+            transition: background .3s ease;
+        }
+        .search-box .btn:hover {
+            background: #3367d6;
+        }
+        .search-box .form-control:focus {
+            box-shadow: none;
+        }
+        .search-box .form-control::placeholder {
+            color: #9e9e9e;
+        }
+        h2{
+            font-weight: bold;
+            font-family: "Times New Roman", Times, serif;
+        }
+    </style>
+</head>
+<body>
+<div class="search-container">
+    <center><h2>GameTrack Search</h2></center>
+    <p></p>
+    <p></p>
+    <form id="searchForm" class="search-box">
+        <input type="search" class="form-control" id="searchQuery" placeholder="Search games, users, comments...">
+        <button class="btn" type="submit">
+            <i class="bi bi-search"></i> Search
+        </button>
+    </form>
+</div>
+
+<script>
+    // Your Firebase and JavaScript code as before...
+    var firebaseConfig = {
+        apiKey: "AIzaSyD18a6bP6Ec0QCsLm5bl04prN_WAchA4Is",
+        authDomain: "gamtrack-3a2f2.firebaseapp.com",
+        projectId: "gamtrack-3a2f2",
+        storageBucket: "gamtrack-3a2f2.appspot.com",
+        messagingSenderId: "492662811532",
+        appId: "1:492662811532:web:4e59f354ffbc43eee384a9",
+        measurementId: "G-5VTT1HQLJ1"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.firestore();
+
+    document.getElementById('searchForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var searchQuery = document.getElementById('searchQuery').value.trim().toLowerCase();
+
+        // Clear previous results
+        document.getElementById('searchResults').innerHTML = '';
+
+        searchInCollection('games', 'title', searchQuery);
+        searchInCollection('users', 'username', searchQuery);
+        searchInCollection('comments', 'text', searchQuery);
+        // Add additional search functions as needed
+    });
+
+    function searchInCollection(collection, field, query) {
+        db.collection(collection).where(field, 'array-contains', query).get()
+            .then((querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    displayResult(doc.data(), collection);
+                });
+            })
+            .catch((error) => {
+                console.error("Error searching documents in " + collection + ": ", error);
+            });
+    }
+
+    function displayResult(data, type) {
+        var resultsContainer = document.getElementById('searchResults');
+        var resultElement = document.createElement('div');
+        resultElement.classList.add('card');
+
+        var content = '';
+        switch (type) {
+            case 'games':
+                content = `<div class="card-body"><h5 class="card-title">${data.title}</h5><p class="card-text">${data.description || ''}</p></div>`;
+                break;
+            case 'users':
+                content = `<div class="card-body"><h5 class="card-title">${data.username}</h5><p class="card-text">User Bio: ${data.bio || 'N/A'}</p></div>`;
+                break;
+            case 'comments':
+                content = `<div class="card-body"><p class="card-text">${data.text}</p></div>`;
+                break;
+            // Add more cases for other data types as needed
+        }
+
+        resultElement.innerHTML = content;
+        resultsContainer.appendChild(resultElement);
+    }
+</script>
+
+</body>
+</html>
