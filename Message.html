@@ -128,6 +128,12 @@
         </div>
       </form>
     </div>
+  </div>
+
+  <p></p>
+  <p></p>
+  <p></p>
+
     <div class="col-md-4">
       <h2 class="mb-4">Announcements</h2>
       <div id="announcementContainer">
@@ -135,9 +141,8 @@
       </div>
     </div>
   </div>
-</div>
 
-<!-- Bootstrap JS and jQuery -->
+
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
@@ -174,7 +179,7 @@
   // Function to fetch and display announcements
   function fetchAndDisplayAnnouncements() {
     var announcementContainer = document.getElementById('announcementContainer');
-    var announcementsRef = firebase.database().ref('announcements');
+    var announcementsRef = firebase.database().ref('Announcement');
     announcementsRef.on('value', function(snapshot) {
       announcementContainer.innerHTML = '';  // Clear existing announcements
       snapshot.forEach(function(childSnapshot) {
@@ -195,51 +200,58 @@
   fetchAndDisplayAnnouncements();
 
   // Function to send a message
-  function sendMessage() {
-    var currentUser = firebase.auth().currentUser;
-    if(currentUser) {
-      var messageInput = document.getElementById('messageInput');
-      var messageContent = messageInput.value.trim();
-      if (messageContent) {
-        var newMessage = {
-          content: messageContent,
-          senderId: currentUser.uid,
-          timestamp: firebase.database.ServerValue.TIMESTAMP
-        };
-        firebase.database().ref('messages').push(newMessage);
-        messageInput.value = ''; // Clear the message input
-      }
-    } else {
-      console.error('No user is signed in to send a message.');
-      // Redirect to login or show an error
-    }
-  }
-
-  // Event listener for the message form submission
+  // Function to send a message
   document.getElementById('messageForm').addEventListener('submit', function(event) {
     event.preventDefault();
     sendMessage();
   });
 
-  // Function to listen for new messages
-  function listenForMessages() {
-    var messagesRef = firebase.database().ref('messages');
-    messagesRef.on('child_added', function(snapshot) {
-      var message = snapshot.val();
-      var currentUser = firebase.auth().currentUser;
-      if(message.senderId === currentUser.uid) {
-        // Display the message if the user is the sender
-        var chatContainer = document.getElementById('chatContainer');
-        var messageElement = document.createElement('div');
-        messageElement.className = 'message';
-        messageElement.innerHTML = `<p><strong>You:</strong> ${message.content}</p>`;
-        chatContainer.appendChild(messageElement);
-        chatContainer.scrollTop = chatContainer.scrollHeight;
+  // Function to send a message
+  function sendMessage() {
+    var currentUser = firebase.auth().currentUser;
+    if (currentUser) {
+      var messageInput = document.getElementById('messageInput');
+      var messageContent = messageInput.value.trim();
+      if (messageContent) {
+        // Generate a new message reference with an auto-generated ID
+        var newMessageRef = firebase.database().ref('DirectMessage').push();
+        var newMessage = {
+          content: messageContent,
+          createdAt: firebase.database.ServerValue.TIMESTAMP, // Firebase server timestamp
+          messageId: newMessageRef.key, // Unique key for the message
+          receiverId: 'REPLACE_WITH_RECEIVER_UID', // Placeholder - replace with actual logic to determine the receiver's ID
+          senderId: currentUser.uid
+        };
+
+        // Push the new message to Firebase and clear the input
+        newMessageRef.set(newMessage).then(() => {
+          displayMessage(newMessage);
+          messageInput.value = ''; // Clear the message input
+        }).catch((error) => {
+          console.error('Error sending message:', error);
+        });
       }
-      // Handle received messages if necessary
-    });
+    } else {
+      console.error('No user is signed in to send a message.');
+      // Handle the sign-in state appropriately (e.g., show a login link or modal)
+    }
   }
-  listenForMessages();
+
+  // Function to display a message
+  function displayMessage(message) {
+    var chatContainer = document.getElementById('chatContainer');
+    var messageElement = document.createElement('div');
+    messageElement.className = 'message';
+    messageElement.innerHTML = `<p>${message.senderId === firebase.auth().currentUser.uid ? '<strong>You:</strong>' : '<strong>Other:</strong>'} ${message.content}</p>`;
+    chatContainer.appendChild(messageElement);
+    chatContainer.scrollTop = chatContainer.scrollHeight; // Scroll to the bottom of the chat container
+  }
+
+  // Listen for new messages
+  firebase.database().ref('DirectMessage').on('child_added', function(snapshot) {
+    var message = snapshot.val();
+    displayMessage(message);
+  });
 </script>
 </body>
 </html>

@@ -136,9 +136,9 @@
         // Clear previous results
         document.getElementById('searchResults').innerHTML = '';
 
-        searchInCollection('games', 'title', searchQuery);
-        searchInCollection('users', 'username', searchQuery);
-        searchInCollection('comments', 'text', searchQuery);
+        searchInCollection('Games', 'Title', searchQuery);
+        searchInCollection('User', 'username', searchQuery);
+        searchInCollection('Comment', 'content', searchQuery);
         // Add additional search functions as needed
     });
 
