@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--suppress HtmlUnknownTarget -->
+<!--suppress ALL -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -7,7 +7,7 @@
   <title>Friend Requests</title>
   <!-- Bootstrap CSS -->
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Internal CSS for background image -->
+  <!-- Internal CSS for background image and search bar styling -->
   <style>
     body {
       background-image: url('Games.jpg'); /* Ensure the image file is in the right path */
@@ -20,11 +20,27 @@
       background-color: rgba(255, 255, 255, 0.8); /* White background with opacity */
       border-radius: 15px;
       padding: 20px;
-      margin-top: 20px;
+      margin-top: 100px; /* Added space for navbar */
+    }
+    .search-container {
+      margin: 0 auto; /* Center the search container */
+    }
+    .search-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .search-box .form-control {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    .search-box .btn {
+      width: 100%;
     }
   </style>
 </head>
 <body>
+<!-- Navigation Bar -->
 <!-- Navigation Bar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
   <a class="navbar-brand" href="#">Gamer Network</a>
@@ -68,16 +84,17 @@
   </div>
 </nav>
 
+<!-- Main Container -->
 <div class="container">
-  <h2>Search for Users</h2>
-  <div class="input-group mb-3">
-    <input type="text" id="searchUser" class="form-control" placeholder="Enter username to search">
-    <div class="input-group-append">
-      <button class="btn btn-outline-secondary" type="button" onclick="searchUsers()">Search</button>
+  <div class="search-container">
+    <h2 class="text-center">GameTrack</h2>
+    <form id="searchForm" class="search-box mt-3 mb-3">
+      <input type="search" class="form-control" id="searchQuery" placeholder="Search games, users, comments..." aria-label="Search">
+      <button class="btn btn-primary my-2 my-sm-0" type="submit">Search</button>
+    </form>
+    <div id="userList" class="list-group">
+      <!-- Search results will be loaded here dynamically -->
     </div>
-  </div>
-  <div id="userList" class="list-group">
-    <!-- Search results will be loaded here dynamically -->
   </div>
 </div>
 
@@ -87,9 +104,6 @@
 <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
 
 <script>
-  // Your web app's Firebase configuration
-  import firebase from "firebase/compat";
-
   var firebaseConfig = {
     apiKey: "AIzaSyD18a6bP6Ec0QCsLm5bl04prN_WAchA4Is",
     authDomain: "gamtrack-3a2f2.firebaseapp.com",
@@ -103,71 +117,39 @@
   firebase.initializeApp(firebaseConfig);
   var db = firebase.firestore();
 
-  function searchUsers() {
-    const searchValue = document.getElementById('searchUser').value.toLowerCase();
+  // Function to search users (or other content)
+  function searchUsers(event) {
+    event.preventDefault(); // Prevent the default form submit action
+    const searchValue = document.getElementById('searchQuery').value.toLowerCase();
     const userList = document.getElementById('userList');
     userList.innerHTML = ''; // Clear the current list
 
-    if (!searchValue.trim()) {
-      const noResultItem = document.createElement('li');
-      noResultItem.classList.add('list-group-item');
-      noResultItem.textContent = 'Please enter a username to search.';
-      userList.appendChild(noResultItem);
-      return;
-    }
-
+    // Replace with your search logic
+    // For example, searching in the 'User' collection:
     db.collection('User')
             .where('username', '==', searchValue)
             .get()
             .then(querySnapshot => {
               if (querySnapshot.empty) {
-                const noResultItem = document.createElement('li');
-                noResultItem.classList.add('list-group-item');
-                noResultItem.textContent = 'No users found with that username.';
-                userList.appendChild(noResultItem);
+                userList.innerHTML = '<li class="list-group-item">No users found.</li>';
               } else {
                 querySnapshot.forEach(doc => {
                   const userData = doc.data();
-                  const userItem = document.createElement('li');
-                  userItem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
-                  userItem.innerHTML = `
-              ${userData.username} <!-- Field for user's username -->
-              <button class="btn btn-primary" onclick="sendFriendRequest('${firebase.auth().currentUser.uid}', '${doc.id}')">Add Friend</button>
-            `;
-                  userList.appendChild(userItem);
+                  userList.innerHTML += '<li class="list-group-item">' + userData.username + '</li>';
                 });
               }
             })
             .catch(error => {
-              console.error('Error searching for users:', error);
+              console.error('Error searching:', error);
             });
   }
 
-  function sendFriendRequest(userId1, userId2) {
-    // Generate a pseudo-random ID for the friendship
-    var friendshipId = 'friend_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-
-    var friendRequestData = {
-      Status: 'pending',
-      userId1: userId1,
-      userId2: userId2,
-      FriendshipId: friendshipId
-    };
-
-    // Add a new document with a generated ID to the Friendship collection
-    db.collection('Friendship').add(friendRequestData)
-            .then(docRef => {
-              console.log('Friend request sent with ID:', docRef.id, 'FriendshipId:', friendshipId);
-            })
-            .catch(error => {
-              console.error('Error sending friend request:', error);
-            });
-  }
+  // Add event listener to form
+  document.getElementById('searchForm').addEventListener('submit', searchUsers);
 </script>
 
 <!-- Bootstrap JS and dependencies -->
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>
