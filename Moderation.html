@@ -4,64 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Post/Comment Moderation</title>
-    <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-image: url('moderation_bg.jpg');
+            background-image: url('Money.jpg');
             background-size: cover;
             background-position: center;
             height: 100vh;
             margin: 0;
             padding: 0;
-            color: #fff;
+            color: #0056b3;
         }
-
         .container {
             margin-top: 50px;
         }
-
-        .moderation-list {
+        .moderation-list, .flagged-list, .removed-list {
             background-color: rgba(0, 0, 0, 0.7);
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 20px;
         }
-
-        .post-comment-card {
+        .post-comment-card, .flagged-comment-card, .removed-post-card {
             background-color: rgba(255, 255, 255, 0.9);
             border-radius: 10px;
             margin-bottom: 20px;
             padding: 15px;
         }
-
         .action-buttons {
             text-align: right;
         }
-
         .action-buttons button {
             margin-left: 10px;
-        }
-
-        .flagged-list,
-        .removed-list {
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-
-        .flagged-list h2,
-        .removed-list h2 {
-            margin-bottom: 15px;
-        }
-
-        .flagged-comment-card,
-        .removed-post-card {
-            background-color: rgba(255, 255, 255, 0.9);
-            border-radius: 10px;
-            margin-bottom: 20px;
-            padding: 15px;
         }
     </style>
 </head>
@@ -76,7 +49,7 @@
                     <!-- Comments fetched from Firebase will be inserted here -->
                 </div>
             </div>
-            
+
             <!-- Flagged Content Section -->
             <div class="flagged-list">
                 <h2 class="text-center mb-4">Flagged Content</h2>
@@ -89,7 +62,7 @@
                 <!-- Removed content will be displayed here -->
             </div>
 
-            <a href="admin-dashboard.html" class="btn btn-secondary btn-block">Back to Admin Dashboard</a>
+            <a href="Site Admin" class="btn btn-secondary btn-block">Back to Admin Dashboard</a>
         </div>
     </div>
 </div>
@@ -99,60 +72,121 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 
-<!-- Firebase SDK (Include Firebase SDK script here) -->
-<!-- Example: Include Firebase Realtime Database or Firestore SDK script here -->
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-firestore.js"></script>
 
 <script>
-    // Function to fetch comments/posts from Firebase and populate the UI
+    var firebaseConfig = {
+        apiKey: "AIzaSyD18a6bP6Ec0QCsLm5bl04prN_WAchA4Is",
+        authDomain: "gamtrack-3a2f2.firebaseapp.com",
+        projectId: "gamtrack-3a2f2",
+        storageBucket: "gamtrack-3a2f2.appspot.com",
+        messagingSenderId: "492662811532",
+        appId: "1:492662811532:web:4e59f354ffbc43eee384a9",
+        measurementId: "G-5VTT1HQLJ1"
+    };
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.firestore();
+
     function fetchComments() {
-        // Replace this with your Firebase logic to fetch comments/posts
-        // Example: 
-        // firebase.database().ref('comments').on('value', (snapshot) => {
-        //     snapshot.forEach((childSnapshot) => {
-        //         const commentData = childSnapshot.val();
-        //         const commentId = childSnapshot.key;
-        //         // Create HTML elements dynamically and append to the comments-container
-        //         const commentElement = `<div class="post-comment-card">
-        //                                    <h5>${commentData.userName}</h5>
-        //                                    <p>${commentData.content}</p>
-        //                                    <small>Posted on: ${commentData.postedDate}</small>
-        //                                    <div class="action-buttons">
-        //                                        <button class="btn btn-danger" onclick="removePostComment(this)">Remove</button>
-        //                                        <button class="btn btn-warning" onclick="flagPostComment(this)">Flag</button>
-        //                                    </div>
-        //                                </div>`;
-        //         $('#comments-container').append(commentElement);
-        //     });
-        // });
+        db.collection("Comment").onSnapshot((querySnapshot) => {
+            $('#comments-container').empty();
+            querySnapshot.forEach((doc) => {
+                const commentData = doc.data();
+                const commentId = doc.id;
+                const commentElement = `<div class="post-comment-card" id="comment_${commentId}">
+                                         <h5>User: ${commentData.userName}</h5>
+                                         <p>${commentData.content}</p>
+                                         <small>Posted on: ${commentData.postedDate}</small>
+                                         <div class="action-buttons">
+                                             <button class="btn btn-warning" onclick="flagComment('${commentId}', '${commentData.postId}', '${commentData.userId}')">Flag</button>
+                                         </div>
+                                     </div>`;
+                $('#comments-container').append(commentElement);
+            });
+        });
     }
 
-    // Call fetchComments function when the page loads
+    function flagComment(commentId, postId, userId) {
+        var flagEntry = {
+            DateFlagged: firebase.firestore.Timestamp.fromDate(new Date()),
+            commentId: commentId,
+            postId: postId,
+            userId: userId,
+            reason: ""
+        };
+
+        db.collection("Flag").add(flagEntry)
+            .then((docRef) => {
+                notifyUser(`The comment has been flagged for review with ID: ${docRef.id}`);
+                updateUIAfterFlagging(commentId);
+            })
+            .catch((error) => {
+                console.error("Error flagging the comment: ", error);
+            });
+    }
+
+    function updateUIAfterFlagging(commentId) {
+        const commentCard = document.getElementById(`comment_${commentId}`);
+        if (commentCard) {
+            commentCard.style.opacity = '0.5';
+            const flagLabel = document.createElement('span');
+            flagLabel.textContent = 'Flagged for review';
+            flagLabel.className = 'badge badge-warning';
+            commentCard.appendChild(flagLabel);
+        }
+    }
+
+    function notifyUser(message) {
+        const toastBody = document.querySelector('.toast .toast-body');
+        toastBody.textContent = message;
+        $('.toast').toast('show');
+    }
+
     $(document).ready(function () {
         fetchComments();
     });
 
-    function removePostComment(button) {
-        // Logic to remove the post/comment
-        button.closest('.post-comment-card').remove();
-        notifyUser('Your post/comment has been removed.');
+    function fetchPosts() {
+        db.collection("Post").onSnapshot((querySnapshot) => {
+            $('#posts-container').empty();
+            querySnapshot.forEach((doc) => {
+                const postData = doc.data();
+                const postId = doc.id;
+                const postElement = `<div class="post-card" id="post_${postId}">
+                                <h5>User: ${postData.userName}</h5>
+                                <p>${postData.content}</p>
+                                <small>Posted on: ${postData.postedDate}</small>
+                                <div class="action-buttons">
+                                    <button class="btn btn-warning" onclick="flagPost('${postId}', '${postData.userId}')">Flag</button>
+                                </div>
+                            </div>`;
+                $('#posts-container').append(postElement);
+            });
+        });
     }
 
-    function flagPostComment(button) {
-        // Logic to flag the post/comment
-        // Move the flagged content to the flagged-list section
-        const flaggedCard = button.closest('.post-comment-card').clone();
-        flaggedCard.classList.remove('post-comment-card');
-        flaggedCard.classList.add('flagged-comment-card');
-        $('.flagged-list').append(flaggedCard);
-        // Remove the original post/comment
-        button.closest('.post-comment-card').remove();
-        notifyUser('Your post/comment has been flagged for review.');
+    function flagPost(postId, userId) {
+        var flagEntry = {
+            DateFlagged: firebase.firestore.Timestamp.fromDate(new Date()),
+            postId: postId,
+            userId: userId,
+            reason: ""
+        };
+
+        db.collection("Flag").add(flagEntry)
+            .then((docRef) => {
+                notifyUser(`The post has been flagged for review with ID: ${docRef.id}`);
+                updateUIAfterFlagging(postId, true);
+            })
+            .catch((error) => {
+                console.error("Error flagging the post: ", error);
+            });
     }
 
-    function notifyUser(message) {
-        alert(message);
-        // You can customize the notification method (e.g., modal, toast) based on your UI design
-    }
+
+
 </script>
 
 </body>

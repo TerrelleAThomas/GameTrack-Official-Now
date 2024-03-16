@@ -4,30 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Reports</title>
-    <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-image: url('admin_reports_bg.jpg');
+            background-image: url('Cow.jpg');
             background-size: cover;
             background-position: center;
             height: 100vh;
             margin: 0;
             padding: 0;
-            color: #fff;
+            color: #0056b3;
         }
-
         .container {
             margin-top: 50px;
         }
-
         .report-card {
             background-color: rgba(0, 0, 0, 0.7);
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 20px;
         }
-
         .report-results {
             background-color: rgba(255, 255, 255, 0.9);
             border-radius: 10px;
@@ -37,89 +33,156 @@
     </style>
 </head>
 <body>
-
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="report-card">
                 <h2 class="text-center mb-4">Admin Reports</h2>
-
-                <!-- Report: Total number of times a game has been played -->
-                <div class="report-results">
-                    <h4>Report: Total number of times a game has been played</h4>
-                    <p>Time Period: January 1, 2023 - April 18, 2023</p>
-                    <p>Total Plays: <span id="totalPlays">0</span></p>
+                <div class="form-group">
+                    <label for="startDate">Start Date:</label>
+                    <input type="date" class="form-control" id="startDate" required>
                 </div>
-
-                <!-- Report: Total number of posts for a time period -->
+                <div class="form-group">
+                    <label for="endDate">End Date:</label>
+                    <input type="date" class="form-control" id="endDate" required>
+                </div>
+                <button type="button" class="btn btn-primary btn-block" onclick="generateContentReports()">Generate Content Reports</button>
+                <p></p>
                 <div class="report-results">
-                    <h4>Report: Total number of posts for a time period</h4>
-                    <p>Time Period: January 18, 2023 - April 18, 2023</p>
+                    <h4>Report: Total number of posts and comments for a time period</h4>
                     <p>Total Posts: <span id="totalPosts">0</span></p>
+                    <p>Total Comments: <span id="totalComments">0</span></p>
                 </div>
-
-                <!-- Report Form -->
-                <form>
-                    <div class="form-group">
-                        <label for="startDate">Start Date:</label>
-                        <input type="date" class="form-control" id="startDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="endDate">End Date:</label>
-                        <input type="date" class="form-control" id="endDate" required>
-                    </div>
-                    <!-- Generate Reports Button -->
-                    <button type="button" class="btn btn-primary btn-block" onclick="generateReports()">Generate Reports</button>
-                </form>
+                <div class="form-group">
+                    <label for="username">User Username:</label>
+                    <input type="text" class="form-control" id="username" placeholder="Enter username for playtime report" required>
+                </div>
+                <button type="button" class="btn btn-info btn-block" onclick="generatePlaytimeReport()">Generate Playtime Report</button>
+               <p></p>
+                <div class="report-results">
+                    <h4>Report: Total playtime for a user</h4>
+                    <p>Total Playtime: <span id="totalPlaytime">0</span> hours</p>
+                </div>
+                <div class="report-results" id="reportContents">
+                    <h4>Generated Reports:</h4>
+                    <!-- Report contents will be appended here -->
+                </div>
             </div>
-
             <a href="admin-dashboard.html" class="btn btn-secondary btn-block">Back to Admin Dashboard</a>
         </div>
     </div>
 </div>
 
-<!-- Bootstrap JS and jQuery -->
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-
-<!-- Firebase SDK (Include Firebase SDK script here) -->
-
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
 <script>
-    function generateReports() {
-        // Assume you have Firebase SDK loaded, and you can interact with Firebase to fetch reports
-        // Replace the following logic with your actual implementation
+    const firebaseConfig = {
+        apiKey: "AIzaSyD18a6bP6Ec0QCsLm5bl04prN_WAchA4Is",
+        authDomain: "gamtrack-3a2f2.firebaseapp.com",
+        projectId: "gamtrack-3a2f2",
+        storageBucket: "gamtrack-3a2f2.appspot.com",
+        messagingSenderId: "492662811532",
+        appId: "1:492662811532:web:4e59f354ffbc43eee384a9",
+        measurementId: "G-5VTT1HQLJ1"
+    };
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-        // Get input values
-        const startDate = document.getElementById('startDate').value;
-        const endDate = document.getElementById('endDate').value;
-
-        // Fetch game play report
-        const gamePlayReport = fetchGamePlayReport(startDate, endDate);
-        document.getElementById('totalPlays').innerText = gamePlayReport.totalPlays;
-
-        // Fetch post report
-        const postReport = fetchPostReport(startDate, endDate);
-        document.getElementById('totalPosts').innerText = postReport.totalPosts;
+    function generateReportId() {
+        return Math.random().toString(36).substr(2, 9);
     }
 
-    // Replace the following functions with your actual logic to fetch reports from Firebase
-    function fetchGamePlayReport(startDate, endDate) {
-        // Example: Fetch game play report from Firebase
-        // Use startDate and endDate in your query to fetch data within the specified time period
-        return {
-            totalPlays: 500, // Replace with the actual total plays
-        };
+    function generateContentReports() {
+        const startDate = new Date(document.getElementById('startDate').value);
+        const endDate = new Date(document.getElementById('endDate').value);
+
+        fetchPostReport(startDate, endDate);
+        fetchCommentReport(startDate, endDate);
+    }
+
+    function generatePlaytimeReport() {
+        const username = document.getElementById('username').value;
+        const startDate = new Date(document.getElementById('startDate').value);
+        const endDate = new Date(document.getElementById('endDate').value);
+
+        fetchGamePlayReport(username, startDate, endDate);
     }
 
     function fetchPostReport(startDate, endDate) {
-        // Example: Fetch post report from Firebase
-        // Use startDate and endDate in your query to fetch data within the specified time period
-        return {
-            totalPosts: 1500, // Replace with the actual total posts
+        db.collection('Post')
+            .where('date', '>=', startDate)
+            .where('date', '<=', endDate)
+            .get()
+            .then((querySnapshot) => {
+                const totalCount = querySnapshot.size;
+                document.getElementById('totalPosts').innerText = totalCount;
+                const reportId = generateReportId();
+                updateFirestoreReport('Post', startDate, endDate, reportId, `Total Posts: ${totalCount}`);
+            });
+    }
+
+    function fetchCommentReport(startDate, endDate) {
+        db.collection('Comment')
+            .where('date', '>=', startDate)
+            .where('date', '<=', endDate)
+            .get()
+            .then((querySnapshot) => {
+                const totalCount = querySnapshot.size;
+                document.getElementById('totalComments').innerText = totalCount;
+                const reportId = generateReportId();
+                updateFirestoreReport('Comment', startDate, endDate, reportId, `Total Comments: ${totalCount}`);
+            });
+    }
+
+    function fetchGamePlayReport(username, startDate, endDate) {
+        db.collection('User').where('username', '==', username).get()
+            .then((userSnapshot) => {
+                if (!userSnapshot.empty) {
+                    const userId = userSnapshot.docs[0].id;
+                    db.collection('GameTrack').where('userid', '==', userId)
+                        .where('date', '>=', startDate)
+                        .where('date', '<=', endDate)
+                        .get()
+                        .then((querySnapshot) => {
+                            let totalPlaytime = 0;
+                            querySnapshot.forEach((doc) => {
+                                totalPlaytime += doc.data().playtime;
+                            });
+                            document.getElementById('totalPlaytime').innerText = `${totalPlaytime} hours`;
+                            const reportId = generateReportId();
+                            updateFirestoreReport('GameTrack', startDate, endDate, reportId, `Total Playtime: ${totalPlaytime} hours`);
+                        });
+                } else {
+                    alert('User not found');
+                }
+            });
+    }
+
+    function updateFirestoreReport(collectionName, startDate, endDate, reportId, content) {
+        const reportDoc = {
+            startDate: startDate.toISOString().slice(0, 10), // Format YYYY-MM-DD
+            endDate: endDate.toISOString().slice(0, 10),
+            reportId: reportId,
+            content: content
         };
+        db.collection('Report').doc(reportId).set(reportDoc)
+            .then(() => {
+                console.log("Report updated in Firestore");
+                displayReportContent(reportId, content);
+            })
+            .catch(error => console.error("Error updating report:", error));
+    }
+
+    function displayReportContent(reportId, content) {
+        const reportsContainer = document.getElementById('reportContents');
+        const reportElement = document.createElement('div');
+        reportElement.setAttribute('id', reportId);
+        reportElement.innerText = content;
+        reportsContainer.appendChild(reportElement);
     }
 </script>
-
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 </body>
 </html>
