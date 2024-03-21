@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!--suppress ALL -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -180,25 +181,35 @@
 
     function submitComment(postId) {
         const commentInput = document.getElementById(`comment-input-${postId}`);
-        const comment = commentInput.value.trim();
-        if (comment) {
+        const commentText = commentInput.value.trim();
+        if (commentText) {
             db.collection("Comment").add({
                 postId,
-                comment,
+                comment: commentText,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(() => {
-                commentInput.value = ''; // Clear input field
-                loadComments(postId); // Reload comments for the current post
-            }).catch(error => {
-                console.error("Error adding comment: ", error);
-            });
+            })
+                .then(() => {
+                    // Clear the comment input field after submission
+                    commentInput.value = '';
+
+                    // Create and append the comment to the UI immediately
+                    const commentsContainer = document.getElementById(`comments-${postId}`);
+                    const commentElement = document.createElement('div');
+                    commentElement.classList.add('comment');
+                    commentElement.innerHTML = `<p class="comment-body">${commentText}</p>`;
+                    commentsContainer.appendChild(commentElement);
+                })
+                .catch(error => {
+                    console.error("Error adding comment: ", error);
+                });
         }
     }
 
     function loadComments(postId) {
         const commentsContainer = document.getElementById(`comments-${postId}`);
         commentsContainer.innerHTML = ''; // Clear existing comments
-        db.collection("Comment").where("postId", "==", postId).orderBy("timestamp")
+        db.collection("Comment").where("postId", "==", postId)
+            .orderBy("timestamp")
             .get()
             .then(querySnapshot => {
                 querySnapshot.forEach(doc => {
@@ -208,8 +219,11 @@
                     commentElement.innerHTML = `<p class="comment-body">${comment.comment}</p>`;
                     commentsContainer.appendChild(commentElement);
                 });
-            });
+            }).catch(error => {
+            console.error("Error loading comments: ", error);
+        });
     }
+
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

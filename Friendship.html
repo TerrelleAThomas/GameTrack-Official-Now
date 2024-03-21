@@ -70,7 +70,7 @@
 <p></p>
 <p></p>
 <!-- Friendship Page Title -->
-<div class="container mt-5 mb-4"> <!-- Added mt-5 to account for fixed navbar -->
+<div class="container mt-5 mb-4">
     <h2 class="mb-4 text-center">Friendship Page</h2>
     <div class="row justify-content-center">
         <!-- User 1 Card -->
@@ -80,12 +80,13 @@
                 <div class="card-body text-center">
                     <h5 class="card-title">User 1</h5>
                     <p class="card-text">Brief description for User 1.</p>
-                    <button type="button" class="btn btn-primary btn-sm btn-rounded">Make a Request</button>
-                    <button type="button" class="btn btn-success btn-sm btn-rounded">Accept</button>
-                    <button type="button" class="btn btn-danger btn-sm btn-rounded">Deny</button>
+                    <button type="button" class="btn btn-primary btn-sm btn-rounded" onclick="makeRequest('USER1_ID')">Make a Request</button>
+                    <button type="button" class="btn btn-success btn-sm btn-rounded" onclick="acceptRequest('FRIEND_REQUEST_ID_FOR_USER1')">Accept</button>
+                    <button type="button" class="btn btn-danger btn-sm btn-rounded" onclick="denyRequest('FRIEND_REQUEST_ID_FOR_USER1')">Deny</button>
                 </div>
             </div>
         </div>
+
         <!-- User 2 Card -->
         <div class="col-xs-12 col-md-3 mb-4">
             <div class="card friend-card">
@@ -93,12 +94,13 @@
                 <div class="card-body text-center">
                     <h5 class="card-title">User 2</h5>
                     <p class="card-text">Brief description for User 2.</p>
-                    <button type="button" class="btn btn-primary btn-sm btn-rounded">Make a Request</button>
-                    <button type="button" class="btn btn-success btn-sm btn-rounded">Accept</button>
-                    <button type="button" class="btn btn-danger btn-sm btn-rounded">Deny</button>
+                    <button type="button" class="btn btn-primary btn-sm btn-rounded" onclick="makeRequest('USER2_ID')">Make a Request</button>
+                    <button type="button" class="btn btn-success btn-sm btn-rounded" onclick="acceptRequest('FRIEND_REQUEST_ID_FOR_USER2')">Accept</button>
+                    <button type="button" class="btn btn-danger btn-sm btn-rounded" onclick="denyRequest('FRIEND_REQUEST_ID_FOR_USER2')">Deny</button>
                 </div>
             </div>
         </div>
+
         <!-- User 3 Card -->
         <div class="col-xs-12 col-md-3 mb-4">
             <div class="card friend-card">
@@ -106,12 +108,13 @@
                 <div class="card-body text-center">
                     <h5 class="card-title">User 3</h5>
                     <p class="card-text">Brief description for User 3.</p>
-                    <button type="button" class="btn btn-primary btn-sm btn-rounded">Make a Request</button>
-                    <button type="button" class="btn btn-success btn-sm btn-rounded">Accept</button>
-                    <button type="button" class="btn btn-danger btn-sm btn-rounded">Deny</button>
+                    <button type="button" class="btn btn-primary btn-sm btn-rounded" onclick="makeRequest('USER3_ID')">Make a Request</button>
+                    <button type="button" class="btn btn-success btn-sm btn-rounded" onclick="acceptRequest('FRIEND_REQUEST_ID_FOR_USER3')">Accept</button>
+                    <button type="button" class="btn btn-danger btn-sm btn-rounded" onclick="denyRequest('FRIEND_REQUEST_ID_FOR_USER3')">Deny</button>
                 </div>
             </div>
         </div>
+
         <!-- User 4 Card -->
         <div class="col-xs-12 col-md-3 mb-4">
             <div class="card friend-card">
@@ -119,16 +122,16 @@
                 <div class="card-body text-center">
                     <h5 class="card-title">User 4</h5>
                     <p class="card-text">Brief description for User 4.</p>
-                    <button type="button" class="btn btn-primary btn-sm btn-rounded">Make a Request</button>
-                    <button type="button" class="btn btn-success btn-sm btn-rounded">Accept</button>
-                    <button type="button" class="btn btn-danger btn-sm btn-rounded">Deny</button>
+                    <button type="button" class="btn btn-primary btn-sm btn-rounded" onclick="makeRequest('USER4_ID')">Make a Request</button>
+                    <button type="button" class="btn btn-success btn-sm btn-rounded" onclick="acceptRequest('FRIEND_REQUEST_ID_FOR_USER4')">Accept</button>
+                    <button type="button" class="btn btn-danger btn-sm btn-rounded" onclick="denyRequest('FRIEND_REQUEST_ID_FOR_USER4')">Deny</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Bootstrap JS and jQuery -->
+        <!-- Bootstrap JS and jQuery -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
@@ -152,54 +155,77 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    function acceptRequest(friendshipId) {
+
+    function generateFriendshipId() {
+        // This will create a new document reference with an auto-generated ID
+        const newFriendshipRef = db.collection('Friendship').doc();
+        // This is the auto-generated ID you can use
+        const friendshipId = newFriendshipRef.id;
+        // You can now use this ID to create a new document
+        console.log(`Generated friendship ID: ${friendshipId}`);
+        return friendshipId;
+    }
+
+    // Example of using the generateFriendshipId function within makeRequest
+    function makeRequest(receiverUserId) {
         const currentUser = firebase.auth().currentUser;
         if (!currentUser) {
-            console.log("User not authenticated");
-            alert("You must be logged in to accept friend requests.");
+            alert("You must be logged in to make friend requests.");
             return;
         }
 
-        // Update the Friendship document with the new status
-        db.collection('Friendship').doc(friendshipId).update({
-            Status: 'accepted', // Assuming you are setting the status as 'accepted'
-            // userId1 and userId2 are assumed to be set already when the document was created
-            // Add any additional fields if necessary
-        }).then(() => {
-            console.log(`Accepted friend request with ID: ${friendshipId}`);
-            alert("Friend request accepted successfully!");
-            // Update the UI or perform additional actions as needed
-        }).catch(error => {
-            console.error("Error accepting friend request: ", error);
-            alert("Failed to accept friend request.");
-        });
+        // Generate a new Friendship ID
+        const friendshipId = generateFriendshipId();
+        const friendRequest = {
+            senderId: currentUser.uid,
+            receiverId: receiverUserId,
+            status: 'requested',
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        // Use the generated friendshipId to set the document
+        db.collection('Friendship').doc(friendshipId).set(friendRequest)
+            .then(() => {
+                console.log(`Friend request successfully sent with ID: ${friendshipId}`);
+                alert("Friend request sent.");
+            })
+            .catch((error) => {
+                console.error("Error sending friend request: ", error);
+                alert("Failed to send friend request.");
+            });
     }
 
-    function rejectRequest(friendshipId) {
-        const currentUser = firebase.auth().currentUser;
-        if (!currentUser) {
-            console.log("User not authenticated");
-            alert("You must be logged in to reject friend requests.");
-            return;
-        }
-
-        // Update the Friendship document with the new status
-        db.collection('Friendship').doc(friendshipId).update({
-            Status: 'rejected', // Assuming you are setting the status as 'rejected'
-            // userId1 and userId2 are assumed to be set already when the document was created
-            // Add any additional fields if necessary
-        }).then(() => {
-            console.log(`Rejected friend request with ID: ${friendshipId}`);
-            alert("Friend request rejected successfully!");
-            // Update the UI or perform additional actions as needed
-        }).catch(error => {
-            console.error("Error rejecting friend request: ", error);
-            alert("Failed to reject friend request.");
-        });
+    // Function to handle accepting a friend request
+    function acceptRequest(friendshipDocumentId) {
+        // Update the document in the 'Friendship' collection
+        db.collection('Friendship').doc(friendshipDocumentId).update({
+            Status: 'accepted' // Update status to 'accepted'
+        })
+            .then(() => {
+                console.log("Friend request accepted.");
+                alert("Friend request accepted.");
+            })
+            .catch((error) => {
+                console.error("Error accepting friend request: ", error);
+                alert("Failed to accept friend request.");
+            });
     }
 
-    function Request(){}
-    // The rest of your JavaScript code...
+    // Function to handle denying a friend request
+    function denyRequest(friendshipDocumentId) {
+        // Update the document in the 'Friendship' collection
+        db.collection('Friendship').doc(friendshipDocumentId).update({
+            Status: 'denied' // Update status to 'denied'
+        })
+            .then(() => {
+                console.log("Friend request denied.");
+                alert("Friend request denied.");
+            })
+            .catch((error) => {
+                console.error("Error denying friend request: ", error);
+                alert("Failed to deny friend request.");
+            });
+    }
 </script>
 </body>
 </html>
