@@ -34,7 +34,7 @@
         <p>We value your feedback. Please tell us about your experience.</p>
     </div>
 
-    <form>
+    <form id="feedback-form" onsubmit="return false;">
         <div class="form-group">
             <label for="name">Name</label>
             <input type="text" class="form-control" id="name" name="name" placeholder="Your name..">
@@ -53,6 +53,64 @@
         <button type="submit" class="btn btn-primary">Submit Feedback</button>
     </form>
 </div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+
+<script>
+    // Your web app's Firebase configuration
+    var firebaseConfig = {
+        apiKey: "AIzaSyD18a6bP6Ec0QCsLm5bl04prN_WAchA4Is",
+        authDomain: "gamtrack-3a2f2.firebaseapp.com",
+        projectId: "gamtrack-3a2f2",
+        storageBucket: "gamtrack-3a2f2.appspot.com",
+        messagingSenderId: "492662811532",
+        appId: "1:492662811532:web:4e59f354ffbc43eee384a9",
+        measurementId: "G-5VTT1HQLJ1"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    document.getElementById('feedback-form').addEventListener('submit', submitFeedback);
+
+    function submitFeedback(e) {
+        e.preventDefault();
+        const feedbackContent = document.getElementById('feedback').value;
+
+        // Ensure the user is logged in and get their UID
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user) {
+                // User is signed in, use their UID to reference the User collection
+                const userRef = db.collection('Users').doc(user.uid);
+
+                // Generate a new document reference with an ID in the 'Feedback' collection
+                const feedbackRef = db.collection('Feedback').doc();
+
+                // Use set with the generated document reference to create the document with feedbackId
+                feedbackRef.set({
+                    DateSubmitted: firebase.firestore.FieldValue.serverTimestamp(),
+                    FeedbackContent: feedbackContent,
+                    UserRef: userRef,
+                    feedbackId: feedbackRef.id // Use the generated ID as the feedbackId
+                })
+                    .then(() => {
+                        console.log("Feedback submitted with ID: ", feedbackRef.id);
+                        // Feedback submitted successfully
+                        // Here you can clear the form or show a success message
+                    })
+                    .catch((error) => {
+                        console.error("Error adding feedback: ", error);
+                        // Handle the error, such as displaying a message to the user
+                    });
+            } else {
+                console.log('User is not signed in.');
+                // Prompt the user to sign in or handle the unsigned user scenario
+            }
+        });
+    }
+
+</script>
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>

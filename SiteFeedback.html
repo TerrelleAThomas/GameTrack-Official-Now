@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Site Admin Feedback Page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            padding-top: 20px;
+            background-image: url('Feedback.jpg'); /* Add your background image here */
+            background-color: #f8f9fa; /* Adjust the background color as needed */
+        }
+        .feedback-container {
+            margin: auto;
+            padding: 20px;
+            max-width: 800px;
+            border-radius: 5px;
+        }
+        .feedback-entry {
+            background-color: #ffffff; /* Set individual feedback entry background to white */
+            border: 4px solid #343a40;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgb(0, 255, 0); /* Optional: Adds a subtle shadow */
+        }
+        .feedback-date {
+            color: #003d82;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        h2{
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container feedback-container">
+    <h2>Site Feedback</h2>
+    <p></p>
+    <div id="feedback-list" class="list-unstyled">
+        <!-- Feedback entries will be dynamically inserted here -->
+    </div>
+</div>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+<script>
+    // Initialize Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyD18a6bP6Ec0QCsLm5bl04prN_WAchA4Is",
+        authDomain: "gamtrack-3a2f2.firebaseapp.com",
+        projectId: "gamtrack-3a2f2",
+        storageBucket: "gamtrack-3a2f2.appspot.com",
+        messagingSenderId: "492662811532",
+        appId: "1:492662811532:web:4e59f354ffbc43eee384a9",
+        measurementId: "G-5VTT1HQLJ1"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    function loadFeedback() {
+        db.collection('Feedback').get().then((querySnapshot) => {
+            const feedbackList = document.getElementById('feedback-list');
+            feedbackList.innerHTML = ''; // Clear any existing entries
+
+            querySnapshot.forEach((doc) => {
+                const feedback = doc.data();
+                const feedbackEntry = document.createElement('div');
+                feedbackEntry.className = 'feedback-entry';
+                feedbackEntry.innerHTML = `
+                <p>${feedback.FeedbackContent}</p>
+                <p class="feedback-date">${feedback.DateSubmitted.toDate().toString()}</p>
+            `;
+                feedbackList.appendChild(feedbackEntry);
+            });
+        }).catch((error) => {
+            console.error("Error getting feedback:", error);
+        });
+    }
+
+    // Call the function to load feedback when the script loads
+    loadFeedback();
+</script>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</body>
+</html>
