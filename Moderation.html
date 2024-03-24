@@ -18,54 +18,120 @@
         .container {
             margin-top: 50px;
         }
-        .moderation-list, .flagged-list, .removed-list {
-            background-color: rgba(0, 0, 0, 0.7);
+
+        .moderation-list, .flagged-list, .removed-list, .moderation-list1 {
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 20px;
         }
+
         .post-comment-card, .flagged-comment-card, .removed-post-card {
-            background-color: rgba(255, 255, 255, 0.9);
+            background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
             border-radius: 10px;
             margin-bottom: 20px;
             padding: 15px;
+            box-shadow: 0 2px 4px rgb(0, 255, 0); /* Slight shadow */
+            color: #333; /* Dark text for readability */
         }
+
+        .post-comment-card h5 {
+            color: #0056b3; /* Color for the user's name or title */
+            margin-bottom: 10px;
+        }
+
+        .post-comment-card p {
+            color: #000; /* Color for the content text */
+        }
+
+        .post-comment-card small {
+            color: #666; /* Lighter color for date or other metadata */
+            font-size: 0.8em;
+        }
+
         .action-buttons {
-            text-align: right;
+            text-align: right; /* Aligns buttons to the right */
         }
+
         .action-buttons button {
-            margin-left: 10px;
+            margin-left: 10px; /* Space between buttons */
+            padding: 5px 15px; /* Padding inside buttons */
+            border: none; /* No border */
+            border-radius: 4px; /* Slight rounding of corners */
+            color: white; /* Text color inside buttons */
+            font-weight: bold; /* Bold font for button text */
+        }
+
+        .action-buttons .btn-warning { /* Styling for 'Flag' button */
+            background-color: #f0ad4e; /* Bootstrap's default warning color */
+        }
+
+        .action-buttons .btn-danger { /* Styling for 'Remove' button */
+            background-color: #d9534f; /* Bootstrap's default danger color */
+        }
+
+        .action-buttons button:hover {
+            opacity: 0.8; /* Slight transparency on hover */
+        }
+
+        h2{
+            font-weight: bold;
+        }
+        .flagged-item-card {
+            background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
+            border-radius: 10px; /* Rounded corners */
+            margin-bottom: 20px; /* Space between cards */
+            padding: 15px; /* Padding inside each card */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Subtle shadow for depth */
+        }
+
+        .flagged-item-card button {
+            padding: 5px 15px; /* Padding inside buttons */
+            background-color: #f0ad4e; /* Color for resolve button */
+            border: none; /* No border */
+            border-radius: 4px; /* Rounded corners */
+            margin-top: 10px; /* Space above the button */
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
+    <div class="row">
+        <!-- Comment Moderation Column -->
+        <div class="col-md-4">
             <div class="moderation-list">
-                <h2 class="text-center mb-4">Post/Comment Moderation</h2>
+                <h2 class="text-center mb-4">Comment Moderation</h2>
                 <div id="comments-container">
                     <!-- Comments fetched from Firebase will be inserted here -->
                 </div>
             </div>
+        </div>
 
-            <!-- Flagged Content Section -->
+        <!-- Posts Moderation Column -->
+        <div class="col-md-4">
+            <div class="moderation-list">
+                <h2 class="text-center mb-4">Posts Moderation</h2>
+                <div id="posts-container">
+                    <!-- Posts fetched from Firebase will be inserted here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Flagged Items Column -->
+        <div class="col-md-4">
             <div class="flagged-list">
-                <h2 class="text-center mb-4">Flagged Content</h2>
-                <!-- Flagged content will be displayed here -->
+                <h2 class="text-center mb-4">Flagged Items</h2>
+                <div id="flagged-items-container">
+                    <!-- Flagged items fetched from Firebase will be inserted here -->
+                </div>
             </div>
-
-            <!-- Removed Content Section -->
-            <div class="removed-list">
-                <h2 class="text-center mb-4">Removed Content</h2>
-                <!-- Removed content will be displayed here -->
-            </div>
-
-            <a href="Site Admin" class="btn btn-secondary btn-block">Back to Admin Dashboard</a>
         </div>
     </div>
 </div>
+
+
+
+            <a href="Site Admin.html" class="btn btn-secondary btn-block">Back to Admin Dashboard</a>
 
 <!-- Bootstrap JS and jQuery -->
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
@@ -73,9 +139,8 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 
 <!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-firestore.js"></script>
-
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
 <script>
     var firebaseConfig = {
         apiKey: "AIzaSyD18a6bP6Ec0QCsLm5bl04prN_WAchA4Is",
@@ -90,23 +155,29 @@
     var db = firebase.firestore();
 
     function fetchComments() {
-        db.collection("Comment").onSnapshot((querySnapshot) => {
-            $('#comments-container').empty();
+        db.collection("Comment").orderBy("timestamp", "desc").onSnapshot((querySnapshot) => {
+            const commentsContainer = document.getElementById('comments-container');
+            commentsContainer.innerHTML = '';
             querySnapshot.forEach((doc) => {
                 const commentData = doc.data();
                 const commentId = doc.id;
-                const commentElement = `<div class="post-comment-card" id="comment_${commentId}">
-                                         <h5>User: ${commentData.userName}</h5>
-                                         <p>${commentData.content}</p>
-                                         <small>Posted on: ${commentData.postedDate}</small>
-                                         <div class="action-buttons">
-                                             <button class="btn btn-warning" onclick="flagComment('${commentId}', '${commentData.postId}', '${commentData.userId}')">Flag</button>
-                                         </div>
-                                     </div>`;
-                $('#comments-container').append(commentElement);
+                const postedDate = commentData.timestamp ? new Date(commentData.timestamp.seconds * 1000).toLocaleString() : 'Unknown';
+                const commentElement = document.createElement('div');
+                commentElement.classList.add('post-comment-card');
+                commentElement.id = `comment_${commentId}`;
+                commentElement.innerHTML = `
+                <p>${commentData.content || 'No content provided.'}</p>
+                <small>Posted on: ${postedDate}</small>
+                <div class="action-buttons">
+                    <button class="btn btn-warning" onclick="flagComment('${commentId}')">Flag</button>
+                    <button class="btn btn-danger" onclick="removeComment('${commentId}')">Remove</button>
+                </div>
+            `;
+                commentsContainer.appendChild(commentElement);
             });
         });
     }
+
 
     function flagComment(commentId, postId, userId) {
         var flagEntry = {
@@ -149,23 +220,33 @@
     });
 
     function fetchPosts() {
-        db.collection("Post").onSnapshot((querySnapshot) => {
-            $('#posts-container').empty();
+        db.collection("Post").orderBy("timestamp", "desc").onSnapshot((querySnapshot) => {
+            const postsContainer = document.getElementById('posts-container');
+            postsContainer.innerHTML = '';
             querySnapshot.forEach((doc) => {
                 const postData = doc.data();
                 const postId = doc.id;
-                const postElement = `<div class="post-card" id="post_${postId}">
-                                <h5>User: ${postData.userName}</h5>
-                                <p>${postData.content}</p>
-                                <small>Posted on: ${postData.postedDate}</small>
-                                <div class="action-buttons">
-                                    <button class="btn btn-warning" onclick="flagPost('${postId}', '${postData.userId}')">Flag</button>
-                                </div>
-                            </div>`;
-                $('#posts-container').append(postElement);
+                const postedDate = postData.timestamp ? new Date(postData.timestamp.seconds * 1000).toLocaleString() : 'Unknown';
+                const postElement = document.createElement('div');
+                postElement.classList.add('post-comment-card');
+                postElement.id = `post_${postId}`;
+                postElement.innerHTML = `
+                <p>${postData.content || 'No content provided.'}</p>
+                <small>Posted on: ${postedDate}</small>
+                <div class="action-buttons">
+                    <button class="btn btn-warning" onclick="flagPost('${postId}')">Flag</button>
+                    <button class="btn btn-danger" onclick="removePost('${postId}')">Remove</button>
+                </div>
+            `;
+                postsContainer.appendChild(postElement);
             });
         });
     }
+
+
+    $(document).ready(function () {
+        fetchPosts(); // This will now fetch and display posts in the separate container when the page is ready
+    });
 
     function flagPost(postId, userId) {
         var flagEntry = {
@@ -185,7 +266,52 @@
             });
     }
 
+    function removeComment(commentId) {
+        if (!confirm("Are you sure you want to remove this comment?")) return;
 
+        db.collection("Comment").doc(commentId).delete().then(() => {
+            notifyUser("Comment successfully removed.");
+            document.getElementById(`comment_${commentId}`).remove();
+        }).catch((error) => {
+            console.error("Error removing comment: ", error);
+            notifyUser("An error occurred while removing the comment.");
+        });
+    }
+
+    function removePost(postId) {
+        if (!confirm("Are you sure you want to remove this post?")) return;
+
+        db.collection("Post").doc(postId).delete().then(() => {
+            notifyUser("Post successfully removed.");
+            document.getElementById(`post_${postId}`).remove();
+        }).catch((error) => {
+            console.error("Error removing post: ", error);
+            notifyUser("An error occurred while removing the post.");
+        });
+    }
+
+    function fetchFlags() {
+        db.collection("Flag").onSnapshot((querySnapshot) => {
+            const flaggedItemsContainer = document.getElementById('flagged-items-container');
+            flaggedItemsContainer.innerHTML = ''; // Clear existing flagged items
+            querySnapshot.forEach((doc) => {
+                const flagData = doc.data();
+                const flagId = doc.id;
+                // Create elements for each flagged item
+                const flagElement = document.createElement('div');
+                flagElement.classList.add('flagged-item-card');
+                flagElement.id = `flag_${flagId}`;
+                flagElement.innerHTML = `
+                <div>User ID: ${flagData.userId}</div>
+                <div>Post/Comment ID: ${flagData.postId || flagData.commentId}</div>
+                <div>Date Flagged: ${flagData.DateFlagged ? new Date(flagData.DateFlagged.seconds * 1000).toLocaleString() : 'Unknown'}</div>
+                <div>Reason: ${flagData.reason || 'No reason provided.'}</div>
+                <!-- Add any action buttons if needed -->
+            `;
+                flaggedItemsContainer.appendChild(flagElement);
+            });
+        });
+    }
 
 </script>
 
