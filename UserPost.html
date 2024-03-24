@@ -139,6 +139,8 @@
     </div>
 </div>
 
+
+
 <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
 <script>
@@ -162,6 +164,9 @@
         event.preventDefault();
         addPost();
     });
+
+
+
 
     function addPost() {
         const title = document.getElementById('postTitle').value.trim();
@@ -202,6 +207,8 @@
                         <input type="text" id="comment-input-${postId}" class="form-control mt-2" placeholder="Write a comment...">
                         <button onclick="submitComment('${postId}')" class="btn btn-primary mt-2">Comment</button>
                         <button onclick="flagPost('${postId}')" class="btn btn-warning mt-2">Flag Post</button>
+                        <button class="btn btn-primary" onclick="editPost('${postId}')">Edit</button>
+                       <button class="btn btn-danger" onclick="removePost('${postId}')">Remove</button>
                     </div>
                 `;
                     postContainer.appendChild(postElement);
@@ -303,6 +310,65 @@
                 console.error("Error flagging comment: ", error);
             });
     }
+    function fetchPosts() {
+        db.collection("Post").orderBy("timestamp", "desc").onSnapshot((querySnapshot) => {
+            const postsContainer = document.getElementById('posts-container');
+            postsContainer.innerHTML = ''; // Clear existing posts
+            querySnapshot.forEach((doc) => {
+                const postData = doc.data();
+                const postId = doc.id;
+                const postedDate = postData.timestamp ? new Date(postData.timestamp.seconds * 1000).toLocaleString() : 'Unknown';
+                const postElement = document.createElement('div');
+                postElement.classList.add('post-comment-card');
+                postElement.id = `post_${postId}`;
+                postElement.innerHTML = `
+                <p id="post-content_${postId}">${postData.content || 'No content provided.'}</p>
+                <small>Posted on: ${postedDate}</small>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="editPost('${postId}')">Edit</button>
+                    <button class="btn btn-danger" onclick="removePost('${postId}')">Remove</button>
+                </div>
+            `;
+                postsContainer.appendChild(postElement);
+            });
+        });
+    }
+
+    function editPost(postId) {
+        const postContentElement = document.getElementById(`post-content_${postId}`);
+        const currentContent = postContentElement.textContent;
+        const newContent = prompt('Edit your post:', currentContent);
+
+        if (newContent !== null && newContent.trim() !== '') {
+            db.collection("Post").doc(postId).update({
+                content: newContent
+            }).then(() => {
+                postContentElement.textContent = newContent;
+                alert('Post updated successfully.');
+            }).catch((error) => {
+                console.error("Error updating post: ", error);
+                alert('An error occurred while updating the post.');
+            });
+        }
+    }
+
+    function removePost(postId) {
+        if (confirm('Are you sure you want to remove this post?')) {
+            db.collection("Post").doc(postId).delete().then(() => {
+                document.getElementById(`post_${postId}`).remove();
+                alert('Post removed successfully.');
+            }).catch((error) => {
+                console.error("Error removing post: ", error);
+                alert('An error occurred while removing the post.');
+            });
+        }
+    }
+
+    // Call fetchPosts when the document is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchPosts();
+    });
+
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
