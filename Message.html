@@ -28,6 +28,27 @@
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       border: none;
     }
+    .container {
+      margin-top: 50px;
+    }
+h2{
+  font-weight: bold;
+  color: #003d82;
+  text-align: center;
+}
+    .announcement-form,
+    .announcement-list {
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+
+    .announcement-list .announcement-card {
+      background-color: rgba(255, 255, 255, 0.9);
+      border-radius: 10px;
+      margin-bottom: 20px;
+      padding: 15px;
+    }
   </style>
 </head>
 <body>
@@ -60,9 +81,6 @@
         <a class="nav-link" href="Message.html">Messages</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="Notifcation.html">Notifications</a>
-      </li>
-      <li class="nav-item">
         <a class="nav-link" href="Friendship.html">Friendship</a>
       </li>
       <li class="nav-item ml-2">
@@ -90,7 +108,14 @@
     </div>
   </div>
 </div>
-
+<p></p>
+<div class="container">
+  <h2>Announcements</h2>
+  <div class="announcement-list" id="announcementList">
+    <h2 class="text-center mb-4">Announcements</h2>
+    <!-- Announcements will be loaded here dynamically -->
+  </div>
+</div>
 <script>
   // Your web app's Firebase configuration
   const firebaseConfig = {
@@ -156,6 +181,26 @@
       sendMessageToFirebase(messageText);
     }
   });
+
+  const announcementContainer = document.getElementById("announcementContainer");
+
+  // Get announcements from Firestore
+  function loadAnnouncements() {
+    db.collection("Announcement").orderBy("DateCreated", "desc").get().then((querySnapshot) => {
+      let announcementsHtml = '';
+      querySnapshot.forEach((doc) => {
+        announcementsHtml += `<div class="announcement-card">
+              <h5>${doc.data().AnnouncementTitle}</h5>
+              <p>${doc.data().AnnouncementContent}</p>
+              <small>Posted on: ${doc.data().DateCreated.toDate().toLocaleDateString()}</small>
+            </div>`;
+      });
+      document.getElementById('announcementList').innerHTML = announcementsHtml;
+    });
+  }
+
+  // Call loadAnnouncements when the page loads
+  window.onload = loadAnnouncements;
 </script>
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
