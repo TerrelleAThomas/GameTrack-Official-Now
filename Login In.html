@@ -102,11 +102,11 @@
                     const isSiteAdmin = doc.data().isSiteAdmin;
 
                     if (isAdmin && !isSiteAdmin) {
-                        window.location.href = '/AdminDashBoard.html';// Admin Dashboard URL
+                        window.location.href = 'AdminDashBoard.html';// Admin Dashboard URL
                     } else if (isSiteAdmin && !isAdmin) {
-                        window.location.href = '/Site Admin.html'; // Site Admin Dashboard URL
+                        window.location.href = 'Site Admin.html'; // Site Admin Dashboard URL
                     } else {
-                        window.location.href = '/UserProfile.html'; // Default Profile Page
+                        window.location.href = 'UserProfile.html'; // Default Profile Page
                     }
                 }
             })
