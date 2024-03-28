@@ -3,44 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Activity Log</title>
+    <title>Activity Log</title>
     <!-- Bootstrap CSS -->
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        /* Custom styles */
-        body {
-            padding: 20px;
-        }
-        .activity-item {
-            margin-bottom: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-        }
-        .activity-item p {
-            margin-bottom: 5px;
-        }
-    </style>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-
-<div class="container">
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div id="activityLogSection"></div>
-        </div>
-    </div>
+<div class="container mt-5">
+    <div id="activityLogContainer"></div>
 </div>
 
-<!-- Bootstrap JS -->
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<!-- Firebase SDK -->
-<!-- Include Firebase SDK if you haven't already -->
-<script src="https://www.gstatic.com/firebasejs/9.4.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js"></script>
+<!-- Firebase JavaScript SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-firestore.js"></script>
 
 <script>
     // Initialize Firebase
@@ -53,54 +27,36 @@
         appId: "1:492662811532:web:4e59f354ffbc43eee384a9",
         measurementId: "G-5VTT1HQLJ1"
     };
+
     firebase.initializeApp(firebaseConfig);
 
-    // Get a reference to the Firestore service
     const db = firebase.firestore();
 
     // Function to fetch and display activity log
-    function fetchAndDisplayActivityLog(username) {
-        // Get a reference to the collection
-        const activityLogRef = db.collection('ActivityLog');
+    function displayActivityLog() {
+        const activityLogContainer = document.getElementById('activityLogContainer');
 
-        // Query the collection
-        activityLogRef.where('username', '==', username).get()
+        // Clear previous content
+        activityLogContainer.innerHTML = '';
+
+        // Fetch activity log from Firestore
+        db.collection('ActivityLog').get()
             .then(snapshot => {
-                if (snapshot.empty) {
-                    // If no data found
-                    console.log('No activity log found for this user.');
-                    document.getElementById('activityLogSection').innerHTML = '<p class="text-muted">No activity log found for this user.</p>';
-                } else {
-                    // If data found
-                    let activityLogHTML = '<h2 class="mb-4">Activity Log</h2>';
-                    snapshot.forEach(doc => {
-                        const activityLogData = doc.data();
-                        // Display data
-                        activityLogHTML += `
-              <div class="activity-item">
-                <p><strong>Total Plays:</strong> ${activityLogData.total_plays}</p>
-                <p><strong>Total Posts:</strong> ${activityLogData.total_posts}</p>
-                <p><strong>Total Comments:</strong> ${activityLogData.total_comments}</p>
-                <p><strong>Number of Friends:</strong> ${activityLogData.number_of_friends}</p>
-                <p><strong>Number of Friend Requests:</strong> ${activityLogData.number_of_requests}</p>
-                <p><strong>Number of Accepted Friend Requests:</strong> ${activityLogData.number_of_accepted}</p>
-                <p><strong>Number of Rejected Friend Requests:</strong> ${activityLogData.number_of_rejected}</p>
-                <p><strong>Number of Pending Friend Requests:</strong> ${activityLogData.number_of_pending}</p>
-              </div>
-            `;
-                    });
-                    document.getElementById('activityLogSection').innerHTML = activityLogHTML;
-                }
+                snapshot.forEach(doc => {
+                    const logData = doc.data();
+                    const logElement = document.createElement('div');
+                    logElement.classList.add('alert', 'alert-info');
+                    logElement.textContent = `User: ${logData.user}, Action: ${logData.action}, Timestamp: ${logData.timestamp}`;
+                    activityLogContainer.appendChild(logElement);
+                });
             })
             .catch(error => {
-                // Handle errors
-                console.error('Error fetching activity log:', error);
+                console.error('Error fetching activity log: ', error);
             });
     }
 
-    // Call the function with a username
-    fetchAndDisplayActivityLog('exampleUsername');
+    // Call displayActivityLog() when the page loads
+    window.onload = displayActivityLog;
 </script>
-
 </body>
 </html>
