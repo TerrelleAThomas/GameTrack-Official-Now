@@ -245,7 +245,6 @@
         const commentsContainer = document.getElementById(`comments-${postId}`);
         commentsContainer.innerHTML = ''; // Clear existing comments
         db.collection("Comment").where("postId", "==", postId)
-            .orderBy("timestamp")
             .get()
             .then(querySnapshot => {
                 querySnapshot.forEach(doc => {
@@ -256,7 +255,8 @@
                     commentElement.innerHTML = `
                     <div class="d-flex justify-content-between align-items-center">
                         <p class="comment-body">${comment.comment}</p>
-                        <button onclick="flagComment('${commentId}')" class="btn btn-warning btn-sm">Flag Comment</button>
+                        <button class="btn btn-secondary onclick="flagComment('your_comment_id')">Flag Comment</button>
+
                     </div>
                 `;
                     commentsContainer.appendChild(commentElement);
@@ -271,8 +271,7 @@
         const userId = "CURRENT_USER_ID"; // Replace with the current user's ID from authentication context
         db.collection("Flag").add({
             DateFlagged: firebase.firestore.Timestamp.now(),
-            FlagId: "",
-            commentId: "",
+            Flagged: true, // Setting Flagged field as a boolean value
             postId: `/Post/${postId}`,
             reason: "",
             userId: `/User/${userId}`
@@ -293,7 +292,7 @@
         const userId = "CURRENT_USER_ID"; // Replace with the current user's ID from authentication context
         db.collection("Flags").add({
             DateFlagged: firebase.firestore.Timestamp.now(),
-            FlagId: "",
+            Flagged: true, // Setting Flagged field as a boolean value
             commentId: `/Comment/${commentId}`,
             postId: "", // Empty since this is for comments
             reason: "", // Assuming reason is not collected; provide UI for input if needed
@@ -303,10 +302,14 @@
                 // Optionally, update the flag document with its own ID in the FlagId field
                 return db.collection("Flag").doc(docRef.id).update({ FlagId: docRef.id });
             })
+            .then(() => {
+                alert("Comment flagged for review.");
+            })
             .catch((error) => {
                 console.error("Error flagging comment: ", error);
             });
     }
+
     function fetchPosts() {
         db.collection("Post").orderBy("timestamp", "desc").onSnapshot((querySnapshot) => {
             const postsContainer = document.getElementById('posts-container');
