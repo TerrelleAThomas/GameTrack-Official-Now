@@ -273,7 +273,6 @@
             DateFlagged: firebase.firestore.Timestamp.now(),
             Flagged: true, // Setting Flagged field as a boolean value
             postId: `/Post/${postId}`,
-            reason: "",
             userId: `/User/${userId}`
         })
             .then((docRef) => {
@@ -290,11 +289,10 @@
 
     function flagComment(commentId) {
         const userId = "CURRENT_USER_ID"; // Replace with the current user's ID from authentication context
-        db.collection("Flags").add({
+        db.collection("Flag").add({
             DateFlagged: firebase.firestore.Timestamp.now(),
             Flagged: true, // Setting Flagged field as a boolean value
             commentId: `/Comment/${commentId}`,
-            postId: "", // Empty since this is for comments
             reason: "", // Assuming reason is not collected; provide UI for input if needed
             userId: `/User/${userId}`
         })

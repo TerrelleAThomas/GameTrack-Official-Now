@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gamer Connect Search</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-firestore.js"></script>
     <style>
         body, html {
             height: 100%;
@@ -112,10 +110,12 @@
             <i class="bi bi-search"></i> Search
         </button>
     </form>
+    <div id="searchResults"></div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-firestore.js"></script>
 <script>
-    // Your Firebase and JavaScript code as before...
     var firebaseConfig = {
         apiKey: "AIzaSyD18a6bP6Ec0QCsLm5bl04prN_WAchA4Is",
         authDomain: "gamtrack-3a2f2.firebaseapp.com",
@@ -131,28 +131,52 @@
 
     document.getElementById('searchForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        var searchQuery = document.getElementById('searchQuery').value.trim().toLowerCase();
+        const searchQuery = document.getElementById('searchQuery').value.trim();
+        const searchResultsContainer = document.getElementById('searchResults');
+        searchResultsContainer.innerHTML = '';
 
-        // Clear previous results
-        document.getElementById('searchResults').innerHTML = '';
+        let usernameQuery = db.collection('User').where('username', '==', searchQuery);
+        let gameConsoleQuery = db.collection('User').where('gameConsole', '==', searchQuery);
+        let genrePreferenceQuery = db.collection('User').where('Genre Preference', '==', searchQuery);
 
-        searchInCollection('Games', 'Title', searchQuery);
-        searchInCollection('User', 'username', searchQuery);
-        searchInCollection('Comment', 'content', searchQuery);
-        // Add additional search functions as needed
-    });
-
-    function searchInCollection(collection, field, query) {
-        db.collection(collection).where(field, 'array-contains', query).get()
-            .then((querySnapshot) => {
-                querySnapshot.forEach((doc) => {
-                    displayResult(doc.data(), collection);
-                });
+        usernameQuery.get()
+            .then(querySnapshot => {
+                if (!querySnapshot.empty) {
+                    querySnapshot.forEach(doc => {
+                        displayResult(doc.data(), 'users');
+                    });
+                } else {
+                    gameConsoleQuery.get()
+                        .then(querySnapshot => {
+                            if (!querySnapshot.empty) {
+                                querySnapshot.forEach(doc => {
+                                    displayResult(doc.data(), 'users');
+                                });
+                            } else {
+                                genrePreferenceQuery.get()
+                                    .then(querySnapshot => {
+                                        if (querySnapshot.empty) {
+                                            searchResultsContainer.innerHTML = '<p>No users or game consoles or genre preferences found.</p>';
+                                        } else {
+                                            querySnapshot.forEach(doc => {
+                                                displayResult(doc.data(), 'users');
+                                            });
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error("Error fetching users by genre preference: ", error);
+                                    });
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error fetching users by game console: ", error);
+                        });
+                }
             })
-            .catch((error) => {
-                console.error("Error searching documents in " + collection + ": ", error);
+            .catch(error => {
+                console.error("Error fetching users by username: ", error);
             });
-    }
+    });
 
     function displayResult(data, type) {
         var resultsContainer = document.getElementById('searchResults');
@@ -161,21 +185,24 @@
 
         var content = '';
         switch (type) {
-            case 'games':
-                content = `<div class="card-body"><h5 class="card-title">${data.title}</h5><p class="card-text">${data.description || ''}</p></div>`;
-                break;
             case 'users':
-                content = `<div class="card-body"><h5 class="card-title">${data.username}</h5><p class="card-text">User Bio: ${data.bio || 'N/A'}</p></div>`;
+                content = `<div class="card-body">
+                            <h5 class="card-title"><a href="UserProfile.html?userId=${data.userId}">${data.username}</a></h5>
+                            <p class="card-text">Email: ${data.email}</p>
+                        </div>`;
                 break;
-            case 'comments':
-                content = `<div class="card-body"><p class="card-text">${data.text}</p></div>`;
+            // Add cases for other data types if needed
+            default:
+                // Handle unknown data type
                 break;
-            // Add more cases for other data types as needed
         }
 
         resultElement.innerHTML = content;
         resultsContainer.appendChild(resultElement);
     }
+
+
+
 </script>
 
 </body>
