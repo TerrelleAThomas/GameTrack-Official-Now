@@ -222,6 +222,7 @@
             db.collection("Comment").add({
                 postId,
                 comment: commentText,
+                Comment: true, // Add the Comment field with value true
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             })
                 .then(() => {
@@ -240,7 +241,6 @@
                 });
         }
     }
-
     function loadComments(postId) {
         const commentsContainer = document.getElementById(`comments-${postId}`);
         commentsContainer.innerHTML = ''; // Clear existing comments

@@ -172,27 +172,30 @@
     var db = firebase.firestore();
 
     function fetchComments() {
-        db.collection("Comment").orderBy("timestamp", "desc").onSnapshot((querySnapshot) => {
-            const commentsContainer = document.getElementById('comments-container');
-            commentsContainer.innerHTML = '';
-            querySnapshot.forEach((doc) => {
-                const commentData = doc.data();
-                const commentId = doc.id;
-                const postedDate = commentData.timestamp ? new Date(commentData.timestamp.seconds * 1000).toLocaleString() : 'Unknown';
-                const commentElement = document.createElement('div');
-                commentElement.classList.add('post-comment-card');
-                commentElement.id = `comment_${commentId}`;
-                commentElement.innerHTML = `
-                <p>${commentData.content || 'No content provided.'}</p>
-                <small>Posted on: ${postedDate}</small>
-                <div class="action-buttons">
-                    <button class="btn btn-danger" onclick="removeComment('${commentId}')">Remove</button>
-                </div>
-            `;
-                commentsContainer.appendChild(commentElement);
+        db.collection("Comment")
+            .where("Comment", "==", true) // Filter comments where Comment is true
+            .onSnapshot((querySnapshot) => {
+                const commentsContainer = document.getElementById('comments-container');
+                commentsContainer.innerHTML = '';
+                querySnapshot.forEach((doc) => {
+                    const commentData = doc.data();
+                    const commentId = doc.id;
+                    const postedDate = commentData.timestamp ? new Date(commentData.timestamp.seconds * 1000).toLocaleString() : 'Unknown';
+                    const commentElement = document.createElement('div');
+                    commentElement.classList.add('post-comment-card');
+                    commentElement.id = `comment_${commentId}`;
+                    commentElement.innerHTML = `
+                    <p>${commentData.comment || 'No comment provided.'}</p>
+                    <small>Posted on: ${postedDate}</small>
+                    <div class="action-buttons">
+                        <button class="btn btn-danger" onclick="removeComment('${commentId}')">Remove</button>
+                    </div>
+                `;
+                    commentsContainer.appendChild(commentElement);
+                });
             });
-        });
     }
+
 
 
     function flagComment(commentId, postId, userId) {
