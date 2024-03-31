@@ -17,18 +17,28 @@
             padding: 0;
             color: #fff;
         }
+        .result-item{
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            padding: 15px;
+            color: #333;
+            border: 1px solid;
+            box-shadow: 5px 10px #f0ad4e;
+        }
         .container {
             margin-top: 50px;
         }
         .game-list,
         .admin-form {
-            background-color: rgba(0, 0, 0, 0.7);
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 20px;
         }
         .game-card {
             background-color: rgba(255, 255, 255, 0.9);
+            border: 1px solid;
+            box-shadow: 5px 10px #f0ad4e;
             border-radius: 10px;
             margin-bottom: 20px;
             padding: 15px;
@@ -49,7 +59,8 @@
 
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-8">
+        <!-- Game Management Section -->
+        <div class="col-md-6">
             <div class="game-list">
                 <h2 class="text-center mb-4">Game Management</h2>
                 <div class="admin-form">
@@ -60,13 +71,25 @@
                     <input type="hidden" id="game-id" />
                     <button class="btn btn-primary" onclick="addOrUpdateGame()">Add/Update Game</button>
                 </div>
+            </div>
+        </div>
+        <!-- Search Section -->
+        <div class="col-md-6">
+            <div class="game-list">
                 <div class="input-group mb-3 search-bar">
-                    <input type="text" class="form-control" placeholder="Search for games..." aria-label="Search" aria-describedby="search-btn">
+                    <input type="text" class="form-control" placeholder="Search for games..." aria-label="Search" aria-describedby="search-btn" id="searchQuery">
                     <div class="input-group-append">
                         <button class="btn btn-outline-secondary" type="button" id="search-btn">Search</button>
                     </div>
                 </div>
+                <div id="searchResults"></div>
             </div>
+        </div>
+    </div>
+</div>
+    <!-- Back to Dashboard Button -->
+    <div class="row justify-content-center">
+        <div class="col-md-8">
             <a href="Site Admin.html" class="btn btn-secondary btn-block">Back to Dashboard</a>
         </div>
     </div>
@@ -189,6 +212,58 @@
         document.getElementById('game-release-date').value = '';
         document.getElementById('game-id').value = '';
     }
+
+    // Define the function to search documents by title
+
+    function searchDocumentsByTitle(titleQuery) {
+        return db.collection("Game")
+            .where("Title", "==", titleQuery)
+            .get()
+            .then((querySnapshot) => {
+                const searchResults = [];
+                querySnapshot.forEach((doc) => {
+                    searchResults.push(doc.data());
+                });
+                return searchResults;
+            })
+            .catch((error) => {
+                console.error("Error searching for documents: ", error);
+                return [];
+            });
+    }
+
+    // Add event listener to the search button
+    const searchButton = document.getElementById('search-btn');
+    const searchQueryInput = document.getElementById('searchQuery');
+    const searchResultsContainer = document.getElementById('searchResults');
+
+    searchButton.addEventListener('click', function() {
+        const searchQuery = searchQueryInput.value.trim();
+
+        searchDocumentsByTitle(searchQuery)
+            .then((searchResults) => {
+                // Clear previous search results
+                searchResultsContainer.innerHTML = '';
+
+                // Display search results
+                if (searchResults.length > 0) {
+                    searchResults.forEach((result) => {
+                        const resultContainer = document.createElement('div');
+                        resultContainer.classList.add('result-item');
+                        resultContainer.innerHTML = `
+                        <h3>${result.Title}</h3>
+                        <p>Description: ${result.Description}</p>
+                        <p>Genre: ${result.Genre}</p>
+                        <p>Release Date: ${result.ReleaseDate}</p>
+                    `;
+                        searchResultsContainer.appendChild(resultContainer);
+                    });
+                } else {
+                    searchResultsContainer.textContent = 'No results found.';
+                }
+            });
+    });
+
 </script>
 
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>

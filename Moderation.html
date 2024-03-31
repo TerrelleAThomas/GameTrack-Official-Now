@@ -327,10 +327,19 @@
                     const flaggedItem = doc.data();
                     const flaggedItemElement = document.createElement('div');
                     flaggedItemElement.classList.add('flagged-item'); // Add a class for styling
-                    flaggedItemElement.innerHTML = `
-                    <p>Flagged item - ID: ${doc.id}</p>
-                    <p>Date Flagged: ${flaggedItem.DateFlagged.toDate()}</p>
-                `;
+
+                    // Loop through all fields in the document and append them to the HTML element
+                    Object.keys(flaggedItem).forEach((key) => {
+                        const fieldElement = document.createElement('p');
+                        if (key === "FlaggedAt") {
+                            const timestamp = new Date(flaggedItem[key].seconds * 1000); // Convert Firestore timestamp to JavaScript Date object
+                            fieldElement.textContent = `${key}: ${timestamp.toLocaleString()}`; // Format the date and time
+                        } else {
+                            fieldElement.textContent = `${key}: ${flaggedItem[key]}`;
+                        }
+                        flaggedItemElement.appendChild(fieldElement);
+                    });
+
                     flaggedItemsContainer.appendChild(flaggedItemElement);
                 });
             })
@@ -341,6 +350,8 @@
 
     // Call fetchFlaggedItems function to populate flagged items on page load
     fetchFlaggedItems();
+
+
 
 </script>
 
