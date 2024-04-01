@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Collection</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body{
+            background-image: url("Arc.jpg");
+        }
+        /* Additional custom styles can be added here */
+        .card {
+            background-color: #cccccc;
+            border: 1px solid;
+            padding: 10px;
+            box-shadow: 5px 10px red;
+        }
+h1{
+    color: #e0e0e0;
+}
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1 class="mt-5">Games</h1>
+    <div id="gameListContainer" class="row mt-3">
+        <!-- Game list will be displayed here -->
+    </div>
+</div>
+
+<p></p>
+<div class="text-center" style="margin-top: 20px;">
+    <a href="About us.html" class="btn btn-secondary">Back to About Us</a>
+</div>
+<!-- Bootstrap JS (optional) -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<!-- Firebase JS SDK -->
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-auth.js"></script>
+
+<script>
+    // Initialize Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyD18a6bP6Ec0QCsLm5bl04prN_WAchA4Is",
+        authDomain: "gamtrack-3a2f2.firebaseapp.com",
+        projectId: "gamtrack-3a2f2",
+        storageBucket: "gamtrack-3a2f2.appspot.com",
+        messagingSenderId: "492662811532",
+        appId: "1:492662811532:web:4e59f354ffbc43eee384a9",
+        measurementId: "G-5VTT1HQLJ1"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth(); // Initialize Firebase Authentication
+
+    // Function to fetch games
+    function fetchGames() {
+        db.collection("Game").get().then((querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+                // Display each game document on the page
+                const gameData = doc.data();
+                const gameElement = document.createElement("div");
+                gameElement.classList.add("col-lg-4", "col-md-6", "mb-4");
+                gameElement.innerHTML = `
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h3 class="card-title">${gameData.Title}</h3>
+                            <p class="card-text">Description: ${gameData.Description}</p>
+                            <p class="card-text">Genre: ${gameData.Genre}</p>
+                            <p class="card-text">Release Date: ${gameData.ReleaseDate}</p>
+                            <button class="btn btn-primary" onclick="playGame('${doc.id}')">Play</button>
+                        </div>
+                    </div>`;
+                document.getElementById("gameListContainer").appendChild(gameElement);
+            });
+        });
+    }
+
+    // Function to play a game
+    function playGame(gameId) {
+        // Check if the user is signed in
+        const user = auth.currentUser;
+        if (user) {
+            // Get current timestamp
+            const timestamp = firebase.firestore.FieldValue.serverTimestamp();
+
+            // Reference to the user's game play document
+            const userGamePlayRef = db.collection("UserGamePlay").doc(user.uid);
+
+            // Check if the user's game play document exists
+            userGamePlayRef.get().then(userGamePlayDoc => {
+                if (userGamePlayDoc.exists) {
+                    // Document exists, update its fields
+                    const data = userGamePlayDoc.data();
+                    const count = data.count ? data.count + 1 : 1; // Increment count
+                    const endDate = null; // Reset endDate to null
+                    userGamePlayRef.update({
+                        gameId: gameId,
+                        gamePlayed: true,
+                        count: count,
+                        startDate: timestamp,
+                        endDate: endDate
+                    })
+                        .then(() => {
+                            console.log("Game played successfully!");
+                        })
+                        .catch((error) => {
+                            console.error("Error updating game play document: ", error);
+                        });
+                } else {
+                    // Document doesn't exist, add a new one
+                    userGamePlayRef.set({
+                        gameId: gameId,
+                        gamePlayed: true,
+                        count: 1, // Initial count
+                        startDate: timestamp,
+                        endDate: null // End date initially null
+                    })
+                        .then(() => {
+                            console.log("Game played successfully!");
+                        })
+                        .catch((error) => {
+                            console.error("Error adding new game play document: ", error);
+                        });
+                }
+            })
+                .catch((error) => {
+                    console.error("Error getting game play document: ", error);
+                });
+        } else {
+            // Prompt the user to sign in
+            alert("Please sign in to play the game.");
+        }
+    }
+
+
+    // Call fetchGames function to load games when the page loads
+    fetchGames();
+
+    // Listen for authentication state changes
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            // User is signed in
+            console.log("User is signed in:", user.uid);
+        } else {
+            // No user is signed in
+            console.log("No user is signed in.");
+        }
+    });
+</script>
+</script>
+</body>
+</html>

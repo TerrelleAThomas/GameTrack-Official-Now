@@ -204,7 +204,7 @@
                         <input type="text" id="comment-input-${postId}" class="form-control mt-2" placeholder="Write a comment...">
                         <button onclick="submitComment('${postId}')" class="btn btn-primary mt-2">Comment</button>
                         <button onclick="flagPost('${postId}')" class="btn btn-warning mt-2">Flag Post</button>
-                        <button class="btn btn-primary" onclick="editPost('${postId}')">Edit</button>
+                        <button class="btn btn-primary" onclick="updatePost('${postId}')">Update</button>
                        <button class="btn btn-danger" onclick="removePost('${postId}')">Remove</button>
                     </div>
                 `;
@@ -323,7 +323,7 @@
                 <p id="post-content_${postId}">${postData.content || 'No content provided.'}</p>
                 <small>Posted on: ${postedDate}</small>
                 <div class="action-buttons">
-                    <button class="btn btn-primary" onclick="editPost('${postId}')">Edit</button>
+                    <button class="btn btn-primary" onclick="updatePost('${postId}')">Update</button>
                     <button class="btn btn-danger" onclick="removePost('${postId}')">Remove</button>
                 </div>
             `;
@@ -332,20 +332,25 @@
         });
     }
 
-    function editPost(postId) {
+    function updatePost(postId) {
         const postContentElement = document.getElementById(`post-content_${postId}`);
         const currentContent = postContentElement.textContent;
-        const newContent = prompt('Edit your post:', currentContent);
+        const newContent = prompt('Update your post:', currentContent);
 
         if (newContent !== null && newContent.trim() !== '') {
+            // Update the UI immediately
+            postContentElement.textContent = newContent;
+
+            // Update the post content in Firestore
             db.collection("Post").doc(postId).update({
                 content: newContent
             }).then(() => {
-                postContentElement.textContent = newContent;
                 alert('Post updated successfully.');
             }).catch((error) => {
                 console.error("Error updating post: ", error);
                 alert('An error occurred while updating the post.');
+                // Revert the UI back to the original content in case of an error
+                postContentElement.textContent = currentContent;
             });
         }
     }

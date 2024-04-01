@@ -1,14 +1,11 @@
 <!DOCTYPE html>
+<!--suppress ALL -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Interactive Chat Application</title>
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
   <style>
     body {
       background-image: url("Gears.jpg");
@@ -45,6 +42,8 @@ h2{
 
     .announcement-list .announcement-card {
       background-color: rgba(255, 255, 255, 0.9);
+      border: 1px solid;
+      box-shadow: 5px 10px #f0ad4e;
       border-radius: 10px;
       margin-bottom: 20px;
       padding: 15px;
@@ -92,7 +91,8 @@ h2{
 
 <div class="container" style="margin-top: 75px;">
   <div class="row justify-content-center mt-5">
-    <div class="col-md-8">
+    <!-- First Chat Container -->
+    <div class="col-md-6">
       <div class="card chat-container">
         <div class="card-header">Chat</div>
         <div class="card-body">
@@ -106,16 +106,35 @@ h2{
         </div>
       </div>
     </div>
+
+    <!-- Second Chat Container -->
+    <div class="col-md-6">
+      <div class="card chat-container">
+        <div class="card-header">Admin Chat</div>
+        <div class="card-body">
+          <div class="chat-box bg-white p-3 mb-4" id="anotherChatBox">
+            <!-- Messages for the second chat will be displayed here -->
+          </div>
+          <div class="send-message">
+            <input type="text" class="form-control" id="anotherMessageInput" placeholder="Type a message">
+            <button class="btn btn-primary" id="anotherSendButton">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
-<p></p>
-<div class="container">
+
+<!-- Announcements Section -->
+<div class="container mt-5">
   <h2>Announcements</h2>
   <div class="announcement-list" id="announcementList">
-    <h2 class="text-center mb-4">Announcements</h2>
     <!-- Announcements will be loaded here dynamically -->
   </div>
 </div>
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-auth.js"></script>
 <script>
   // Your web app's Firebase configuration
   const firebaseConfig = {
@@ -201,6 +220,95 @@ h2{
 
   // Call loadAnnouncements when the page loads
   window.onload = loadAnnouncements;
+
+  function addToAdminCollection() {
+    var currentUser = firebase.auth().currentUser;
+    var db = firebase.firestore();
+
+    if (currentUser) {
+      var userId = currentUser.uid;
+      var userRef = db.collection("User").doc(userId);
+
+      userRef.get().then(function(doc) {
+        if (doc.exists) {
+          var username = doc.data().username;
+
+          // Get the current timestamp
+          var timestamp = firebase.firestore.FieldValue.serverTimestamp();
+          var message = document.getElementById("anotherMessageInput").value;
+
+          db.collection("Admin").add({
+            username: username,
+            admin: true,
+            userId: userId,
+            content: message,
+            timestamp: timestamp
+          })
+                  .then(function(docRef) {
+                    console.log("Document written with ID: ", docRef.id);
+                    // Append message to chat box
+                    appendMessage(username, message);
+                    // Clear input field
+                    document.getElementById("anotherMessageInput").value = "";
+                  })
+                  .catch(function(error) {
+                    console.error("Error adding document: ", error);
+                  });
+        } else {
+          console.log("No such document!");
+        }
+      }).catch(function(error) {
+        console.log("Error getting document:", error);
+      });
+    } else {
+      console.log("No user signed in!");
+    }
+  }
+
+  // Append message to the chat box
+  function appendMessage(username, message) {
+    var chatBox = document.getElementById("anotherChatBox");
+    var messageElement = document.createElement("div");
+    messageElement.classList.add("message");
+    messageElement.textContent = username + ": " + message;
+    messageElement.style.backgroundColor = "red"; // Set the background color to red
+    messageElement.style.color = "white"; // Set the text color to white for better visibility
+    chatBox.appendChild(messageElement);
+  }
+
+
+  // Event listener for the Send button
+  document.getElementById("anotherSendButton").addEventListener("click", function() {
+    addToAdminCollection();
+  });
+
+  loadAdminMessages();
+
+  function loadAdminMessages() {
+    // Reference to the container
+    const adminChatBox = document.getElementById('anotherChatBox');
+
+    // Query Admin collection to get all admin messages where Admin=true
+    db.collection("Admin")
+            .where("admin", "==", true)
+            .get()
+            .then((querySnapshot) => {
+              querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const messageElement = document.createElement("div");
+                messageElement.classList.add("message");
+                messageElement.innerHTML = `
+                    <p><strong>Username:</strong> ${data.username}</p>
+                    <p><strong>Content:</strong> ${data.content}</p>
+                    <p><strong>Timestamp:</strong> ${new Date(data.timestamp.toDate()).toLocaleString()}</p>
+                `;
+                adminChatBox.appendChild(messageElement);
+              });
+            })
+            .catch((error) => {
+              console.error("Error loading admin messages:", error);
+            });
+  }
 </script>
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

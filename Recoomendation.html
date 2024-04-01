@@ -36,19 +36,22 @@
                 <a class="nav-link" href="UserProfile.html">Profile</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#" onclick="changeNavbarColor(event)">Pairing</a>
+                <a class="nav-link" href="Pairing Form.html" onclick="changeNavbarColor(event)">Pairing</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#" onclick="changeNavbarColor(event)">Search</a>
+                <a class="nav-link" href="Search Bar.html" onclick="changeNavbarColor(event)">Search</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="IndiviualPost.html" onclick="changeNavbarColor(event)">Posts</a>
+                <a class="nav-link" href="UserPost.html" onclick="changeNavbarColor(event)">Posts</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#" onclick="changeNavbarColor(event)">Messages</a>
+                <a class="nav-link" href="Message.html" onclick="changeNavbarColor(event)">Messages</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#" onclick="changeNavbarColor(event)">Notifications</a>
+                <a class="nav-link" href="Contact Us.html" onclick="changeNavbarColor(event)">Request</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="Friendship.html" onclick="changeNavbarColor(event)">Friendship</a>
             </li>
             <li class="nav-item ml-2">
                 <a class="nav-link" href="Login In.html">Logout</a>
@@ -57,7 +60,7 @@
     </div>
 </nav>
 
-<div class="container mt-5">
+<<div class="container mt-5">
     <h2 class="mb-4">Recommended Games</h2>
 
     <div class="row" id="gameList">
@@ -71,43 +74,47 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 
 <!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
 
 <script>
-    // Firebase configuration
     const firebaseConfig = {
-        // Your Firebase configuration
+        apiKey: "AIzaSyD18a6bP6Ec0QCsLm5bl04prN_WAchA4Is",
+        authDomain: "gamtrack-3a2f2.firebaseapp.com",
+        projectId: "gamtrack-3a2f2",
+        storageBucket: "gamtrack-3a2f2.appspot.com",
+        messagingSenderId: "492662811532",
+        appId: "1:492662811532:web:4e59f354ffbc43eee384a9",
+        measurementId: "G-5VTT1HQLJ1"
     };
     firebase.initializeApp(firebaseConfig);
 
-    // Function to fetch game recommendations from Firebase
+    // Function to fetch game recommendations from Firebase Firestore based on user's genre preference
+    // Function to fetch game recommendations from Firebase Firestore based on genre "Sports"
     function fetchGameRecommendations() {
-        const gamesRef = firebase.database().ref('games');
-        gamesRef.once('value', (snapshot) => {
-            const games = snapshot.val();
-            if (games) {
-                Object.values(games).forEach(game => {
-                    addGameCard(game);
-                });
-            }
+        const gamesRef = firebase.firestore().collection('Game').where('Genre', '==', 'Sports');
+
+        gamesRef.get().then((querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+                const game = doc.data();
+                addGameCard(game);
+            });
+        }).catch((error) => {
+            console.error('Error fetching game recommendations:', error);
         });
     }
 
     // Function to add a game card dynamically
     function addGameCard(game) {
         const gameList = document.getElementById('gameList');
-        const cardHtml = `
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <img src="${game.image}" class="card-img-top" alt="${game.title}">
-                    <div class="card-body">
-                        <h5 class="card-title">${game.title}</h5>
-                        <p class="card-text">Release Date: ${game.releaseDate}</p>
-                    </div>
-                </div>
-            </div>
-        `;
+        let cardHtml = `<div class="col-md-4 mb-4"><div class="card"><div class="card-body">`;
+
+        // Iterate through all fields in the game object and display their values
+        Object.entries(game).forEach(([key, value]) => {
+            cardHtml += `<p class="card-text"><strong>${key}:</strong> ${value}</p>`;
+        });
+
+        cardHtml += `</div></div></div>`;
         gameList.innerHTML += cardHtml;
     }
 
