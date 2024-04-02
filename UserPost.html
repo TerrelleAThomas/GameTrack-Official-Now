@@ -216,45 +216,79 @@
 
 
     function submitComment(postId) {
+        // Get the comment input element
         const commentInput = document.getElementById(`comment-input-${postId}`);
+        // Extract the comment text and trim any leading/trailing whitespace
         const commentText = commentInput.value.trim();
 
-        // Get current user
-        const user = firebase.auth().currentUser;
+        // Fetch the username from Firestore (assuming you have a default or anonymous username)
+        const username = "Anonymous";
 
-        if (commentText && user) {
-            // Fetch username from User collection
-            db.collection("User").doc(user.uid).get()
-                .then(userDoc => {
-                    const username = userDoc.data().username;
+        // Add the comment to the "Comment" collection in Firestore
+        db.collection("Comment").add({
+            postId,
+            comment: commentText,
+            username: username,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        })
+            .then(() => {
+                // Clear the comment input field after submission
+                commentInput.value = '';
 
-                    // Add comment to the database
-                    db.collection("Comment").add({
-                        postId,
-                        comment: commentText,
-                        username: username, // Add the username field
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                    })
-                        .then(() => {
-                            // Clear the comment input field after submission
-                            commentInput.value = '';
-
-                            // Create and append the comment to the UI immediately
-                            const commentsContainer = document.getElementById(`comments-${postId}`);
-                            const commentElement = document.createElement('div');
-                            commentElement.classList.add('comment');
-                            commentElement.innerHTML = `<p class="comment-body"><strong>${username}</strong>: ${commentText}</p>`;
-                            commentsContainer.appendChild(commentElement);
-                        })
-                        .catch(error => {
-                            console.error("Error adding comment: ", error);
-                        });
-                })
-                .catch(error => {
-                    console.error("Error fetching user data: ", error);
-                });
-        }
+                // Update the UI by appending the new comment
+                const commentsContainer = document.getElementById(`comments-${postId}`);
+                const commentElement = document.createElement('div');
+                commentElement.classList.add('comment');
+                // Construct the HTML for the comment
+                commentElement.innerHTML = `<p class="comment-body"><strong>${username}</strong>: ${commentText}</p>`;
+                // Append the comment element to the comments container
+                commentsContainer.appendChild(commentElement);
+            })
+            .catch(error => {
+                // Handle any errors that occur during adding the comment
+                console.error("Error adding comment: ", error);
+            });
     }
+
+    // Function to fetch comments associated with a postId
+    function fetchComments(postId) {
+        // Get the comments container
+        const commentsContainer = document.getElementById(`comments-${postId}`);
+
+        // Clear existing comments before fetching new ones
+        commentsContainer.innerHTML = '';
+
+        // Fetch comments from Firestore for the specific postId
+        db.collection("Comment").where("postId", "==", postId).get()
+            .then(querySnapshot => {
+                // Iterate through each comment document
+                querySnapshot.forEach(doc => {
+                    // Extract comment data
+                    const commentData = doc.data();
+                    const { username, comment } = commentData;
+
+                    // Create HTML element for the comment
+                    const commentElement = document.createElement('div');
+                    commentElement.classList.add('comment');
+                    // Construct the HTML for the comment
+                    commentElement.innerHTML = `<p class="comment-body"><strong>${username}</strong>: ${comment}</p>`;
+                    // Append the comment element to the comments container
+                    commentsContainer.appendChild(commentElement);
+                });
+            })
+            .catch(error => {
+                console.error("Error fetching comments: ", error);
+            });
+    }
+
+    // Call fetchComments function when the page loads
+    window.addEventListener('load', () => {
+        // Specify the postId for which you want to fetch comments
+        const postId = "your_post_id_here"; // Replace "your_post_id_here" with the actual postId
+        // Call fetchComments function to load comments associated with the specified postId
+        fetchComments(postId);
+    });
+
 
     function loadComments(postId) {
         const commentsContainer = document.getElementById(`comments-${postId}`);
