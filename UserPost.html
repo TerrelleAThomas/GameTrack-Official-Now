@@ -218,29 +218,44 @@
     function submitComment(postId) {
         const commentInput = document.getElementById(`comment-input-${postId}`);
         const commentText = commentInput.value.trim();
-        if (commentText) {
-            db.collection("Comment").add({
-                postId,
-                comment: commentText,
-                Comment: true, // Add the Comment field with value true
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            })
-                .then(() => {
-                    // Clear the comment input field after submission
-                    commentInput.value = '';
 
-                    // Create and append the comment to the UI immediately
-                    const commentsContainer = document.getElementById(`comments-${postId}`);
-                    const commentElement = document.createElement('div');
-                    commentElement.classList.add('comment');
-                    commentElement.innerHTML = `<p class="comment-body">${commentText}</p>`;
-                    commentsContainer.appendChild(commentElement);
+        // Get current user
+        const user = firebase.auth().currentUser;
+
+        if (commentText && user) {
+            // Fetch username from User collection
+            db.collection("User").doc(user.uid).get()
+                .then(userDoc => {
+                    const username = userDoc.data().username;
+
+                    // Add comment to the database
+                    db.collection("Comment").add({
+                        postId,
+                        comment: commentText,
+                        username: username, // Add the username field
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    })
+                        .then(() => {
+                            // Clear the comment input field after submission
+                            commentInput.value = '';
+
+                            // Create and append the comment to the UI immediately
+                            const commentsContainer = document.getElementById(`comments-${postId}`);
+                            const commentElement = document.createElement('div');
+                            commentElement.classList.add('comment');
+                            commentElement.innerHTML = `<p class="comment-body"><strong>${username}</strong>: ${commentText}</p>`;
+                            commentsContainer.appendChild(commentElement);
+                        })
+                        .catch(error => {
+                            console.error("Error adding comment: ", error);
+                        });
                 })
                 .catch(error => {
-                    console.error("Error adding comment: ", error);
+                    console.error("Error fetching user data: ", error);
                 });
         }
     }
+
     function loadComments(postId) {
         const commentsContainer = document.getElementById(`comments-${postId}`);
         commentsContainer.innerHTML = ''; // Clear existing comments
