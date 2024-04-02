@@ -88,61 +88,24 @@ h1{
 
     // Function to play a game
     function playGame(gameId) {
-        // Check if the user is signed in
         const user = auth.currentUser;
         if (user) {
-            // Get current timestamp
             const timestamp = firebase.firestore.FieldValue.serverTimestamp();
-
-            // Reference to the user's game play document
-            const userGamePlayRef = db.collection("UserGamePlay").doc(user.uid);
-
-            // Check if the user's game play document exists
-            userGamePlayRef.get().then(userGamePlayDoc => {
-                if (userGamePlayDoc.exists) {
-                    // Document exists, update its fields
-                    const data = userGamePlayDoc.data();
-                    const count = data.count ? data.count + 1 : 1; // Increment count
-                    const endDate = null; // Reset endDate to null
-                    userGamePlayRef.update({
-                        gameId: gameId,
-                        gamePlayed: true,
-                        count: count,
-                        startDate: timestamp,
-                        endDate: endDate
-                    })
-                        .then(() => {
-                            console.log("Game played successfully!");
-                        })
-                        .catch((error) => {
-                            console.error("Error updating game play document: ", error);
-                        });
-                } else {
-                    // Document doesn't exist, add a new one
-                    userGamePlayRef.set({
-                        gameId: gameId,
-                        gamePlayed: true,
-                        count: 1, // Initial count
-                        startDate: timestamp,
-                        endDate: null // End date initially null
-                    })
-                        .then(() => {
-                            console.log("Game played successfully!");
-                        })
-                        .catch((error) => {
-                            console.error("Error adding new game play document: ", error);
-                        });
-                }
-            })
-                .catch((error) => {
-                    console.error("Error getting game play document: ", error);
-                });
+            db.collection("UserGamePlay").add({
+                userId: user.uid,
+                gameId: gameId,
+                gamePlayed: true,
+                startDate: timestamp,
+                endDate: null
+            }).then(() => {
+                console.log("New game play document added successfully!");
+            }).catch((error) => {
+                console.error("Error adding new game play document: ", error);
+            });
         } else {
-            // Prompt the user to sign in
             alert("Please sign in to play the game.");
         }
     }
-
 
     // Call fetchGames function to load games when the page loads
     fetchGames();
@@ -157,7 +120,6 @@ h1{
             console.log("No user is signed in.");
         }
     });
-</script>
 </script>
 </body>
 </html>

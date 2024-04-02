@@ -48,6 +48,14 @@ h2{
       margin-bottom: 20px;
       padding: 15px;
     }
+    #searchResults {
+      font-weight: bold;
+      padding: 10px;
+      border: 5px solid #000000;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+      box-shadow: 8px 10px #f0ad4e;
+    }
   </style>
 </head>
 <body>
@@ -117,7 +125,7 @@ h2{
           </div>
           <div class="send-message">
             <input type="text" class="form-control" id="anotherMessageInput" placeholder="Type a message">
-            <button class="btn btn-primary" id="anotherSendButton">Send</button>
+           <button class="btn btn-primary" id="anotherSendButton">Send</button>
           </div>
         </div>
       </div>
@@ -131,7 +139,15 @@ h2{
   <div class="announcement-list" id="announcementList">
     <!-- Announcements will be loaded here dynamically -->
   </div>
+
+  <center> <button id="showMessageButton" class="btn btn-primary mt-3">Show Admin Messages</button>
+    <div id="searchResults" class="mt-3">
+      <!-- Admin messages will be displayed here -->
+    </div>
+  </center>
+
 </div>
+
 <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-auth.js"></script>
@@ -282,33 +298,40 @@ h2{
     addToAdminCollection();
   });
 
-  loadAdminMessages();
 
   function loadAdminMessages() {
-    // Reference to the container
-    const adminChatBox = document.getElementById('anotherChatBox');
+    const searchResultsContainer = document.getElementById('searchResults');
+    searchResultsContainer.innerHTML = '';
 
-    // Query Admin collection to get all admin messages where Admin=true
-    db.collection("Admin")
-            .where("admin", "==", true)
+    // Query Admin collection to get all admin messages where AM field is true
+    db.collection("AMessage")
+            .where("Admin", "==", true)
             .get()
             .then((querySnapshot) => {
-              querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                const messageElement = document.createElement("div");
-                messageElement.classList.add("message");
-                messageElement.innerHTML = `
-                    <p><strong>Username:</strong> ${data.username}</p>
-                    <p><strong>Content:</strong> ${data.content}</p>
-                    <p><strong>Timestamp:</strong> ${new Date(data.timestamp.toDate()).toLocaleString()}</p>
-                `;
-                adminChatBox.appendChild(messageElement);
-              });
+              if (!querySnapshot.empty) {
+                // If there are documents where AM field is true, display the admin messages
+                querySnapshot.forEach((doc) => {
+                  const data = doc.data();
+                  const messageElement = document.createElement("div");
+                  messageElement.classList.add("message");
+                  messageElement.innerHTML = `
+                        <p> ${data.content}</p>
+                    `;
+                  searchResultsContainer.appendChild(messageElement);
+                });
+              } else {
+                // If there are no documents where AM field is true, display a message
+                searchResultsContainer.innerHTML = '<p>No admin messages found.</p>';
+              }
             })
             .catch((error) => {
               console.error("Error loading admin messages:", error);
             });
   }
+
+  // Add event listener to the "Show Messages" button
+  const showMessageButton = document.getElementById('showMessageButton');
+  showMessageButton.addEventListener('click', loadAdminMessages);
 </script>
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

@@ -104,7 +104,7 @@
         // Get current timestamp
         const timestamp = new Date().toLocaleString();
 
-        firestore.collection('Admin').add({
+        firestore.collection('AMessage').add({
             username: username,
             content: message,
             timestamp: timestamp,
