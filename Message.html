@@ -97,41 +97,28 @@ h2{
   </div>
 </nav>
 
+
+
 <div class="container" style="margin-top: 75px;">
   <div class="row justify-content-center mt-5">
-    <!-- First Chat Container -->
-    <div class="col-md-6">
-      <div class="card chat-container">
-        <div class="card-header">Chat</div>
-        <div class="card-body">
-          <div class="chat-box bg-white p-3 mb-4" id="chatBox">
-            <!-- Messages will be displayed here -->
-          </div>
-          <div class="send-message">
-            <input type="text" class="form-control" id="messageInput" placeholder="Type a message">
-            <button class="btn btn-primary" id="sendButton">Send</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Second Chat Container -->
     <div class="col-md-6">
       <div class="card chat-container">
         <div class="card-header">Admin Chat</div>
         <div class="card-body">
           <div class="chat-box bg-white p-3 mb-4" id="anotherChatBox">
-            <!-- Messages for the second chat will be displayed here -->
+            <!-- Messages for the chat will be displayed here -->
           </div>
           <div class="send-message">
             <input type="text" class="form-control" id="anotherMessageInput" placeholder="Type a message">
-           <button class="btn btn-primary" id="anotherSendButton">Send</button>
+            <button class="btn btn-primary" id="anotherSendButton">Send</button>
           </div>
         </div>
       </div>
     </div>
   </div>
 </div>
+</body>
+
 
 <!-- Announcements Section -->
 <div class="container mt-5">
@@ -168,54 +155,7 @@ h2{
   const db = firebase.firestore();
   const auth = firebase.auth();
 
-  function sendMessageToFirebase(messageContent) {
-    const user = auth.currentUser;
-    if (user) {
-      const senderId = user.uid;
 
-      db.collection('DirectMessage').add({
-        content: messageContent,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        senderId: senderId
-      })
-              .then((docRef) => {
-                console.log('Message sent to Firebase with ID: ', docRef.id);
-
-                db.collection('DirectMessage').doc(docRef.id).update({
-                  messageId: docRef.id
-                }).then(() => {
-                  console.log('Message ID updated successfully');
-                }).catch((error) => {
-                  console.error('Error updating message ID: ', error);
-                });
-
-              })
-              .catch((error) => {
-                console.error('Error sending message: ', error);
-              });
-    } else {
-      console.log('No user is signed in.');
-    }
-  }
-
-  document.getElementById('sendButton').addEventListener('click', function() {
-    var messageText = document.getElementById('messageInput').value.trim();
-    if(messageText !== "") {
-      var messageElement = document.createElement('div');
-      messageElement.classList.add('message', 'd-flex', 'justify-content-end', 'mb-4');
-      var textElement = document.createElement('div');
-      textElement.classList.add('text', 'p-2', 'bg-primary', 'text-white');
-      textElement.innerText = messageText;
-      messageElement.appendChild(textElement);
-      document.getElementById('chatBox').appendChild(messageElement);
-
-      document.getElementById('messageInput').value = '';
-
-      document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
-
-      sendMessageToFirebase(messageText);
-    }
-  });
 
   const announcementContainer = document.getElementById("announcementContainer");
 
@@ -332,6 +272,96 @@ h2{
   // Add event listener to the "Show Messages" button
   const showMessageButton = document.getElementById('showMessageButton');
   showMessageButton.addEventListener('click', loadAdminMessages);
+
+  function displayMessage(sender, message) {
+    var chatBox = document.getElementById("chatBox");
+    var messageElement = document.createElement("div");
+    messageElement.innerHTML = "<strong>" + sender + ":</strong> " + message;
+    chatBox.appendChild(messageElement);
+  }
+
+  // Function to enable/disable Send button
+  function toggleSendButton() {
+    var receiverInput = document.getElementById("receiverInput").value.trim();
+    var messageInput = document.getElementById("messageInput").value.trim();
+    var sendButton = document.getElementById("sendButton");
+    sendButton.disabled = !(receiverInput && messageInput);
+  }
+
+  // Add event listeners to input fields
+  function sendMessage() {
+    var receiverInput = document.getElementById("receiverInput").value.trim();
+    var messageInput = document.getElementById("messageInput").value.trim();
+    if (receiverInput && messageInput) {
+      var currentUser = firebase.auth().currentUser;
+      if (currentUser) {
+        // Fetch user data from Firestore
+        var userRef = db.collection("User").doc(currentUser.uid);
+        userRef.get().then(function(doc) {
+          if (doc.exists) {
+            var senderUsername = doc.data().username; // Get username from User Collection
+            // Save message to Firestore with auto-generated messageId
+            db.collection("DirectMessage").add({
+              sender: senderUsername,
+              receiver: receiverInput,
+              message: messageInput,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(function(docRef) {
+              // Clear message input field after sending
+              document.getElementById("messageInput").value = "";
+              // Retrieve auto-generated messageId and update the document with it
+              var messageId = docRef.id;
+              docRef.update({
+                messageId: messageId
+              }).then(function() {
+                console.log("Message sent successfully with messageId: ", messageId);
+              }).catch(function(error) {
+                console.error("Error updating message with messageId: ", error);
+              });
+            }).catch(function(error) {
+              console.error("Error sending message: ", error);
+            });
+          } else {
+            console.log("No such document!");
+          }
+        }).catch(function(error) {
+          console.error("Error getting document:", error);
+        });
+      }
+    }
+  }
+
+
+  document.getElementById("receiverInput").addEventListener("input", toggleSendButton);
+  document.getElementById("messageInput").addEventListener("input", toggleSendButton);
+
+  // Call sendMessage function when send button is clicked
+  document.getElementById("sendButton").addEventListener("click", sendMessage);
+
+  // Function to fetch and display messages for the current user
+  // Function to fetch and display messages for the current user
+  function fetchMessagesForUser(username) {
+    if (username) {
+      db.collection("DirectMessage").where("receiver", "==", username)
+              .onSnapshot(function(snapshot) {
+                snapshot.docChanges().forEach(function(change) {
+                  if (change.type === "added") {
+                    var message = change.doc.data();
+                    displayMessage(message.sender, message.message);
+                  }
+                });
+              });
+    }
+  }
+
+  // Fetch and display messages for the current user when the page is loaded or reloaded
+  document.addEventListener("DOMContentLoaded", function() {
+    var currentUser = firebase.auth().currentUser;
+    if (currentUser) {
+      var currentUserUsername = currentUser.username; // Assuming you have a field called "username" in your user object
+      fetchMessagesForUser(currentUserUsername);
+    }
+  });
 </script>
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
