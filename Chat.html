@@ -1,10 +1,10 @@
 <!DOCTYPE html>
+<!--suppress ALL -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Chat Application</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
-    <style>
     <style>
         body, html {
             margin: 0;
@@ -19,6 +19,7 @@
             margin: 20px auto;
             border: 2px solid #f0ad4e;
             padding: 10px;
+            margin-top: 100px; /* Adjusted to account for fixed navbar */
         }
         #chat-box {
             flex-grow: 1;
@@ -37,111 +38,11 @@
             cursor: pointer;
         }
     </style>
-    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-auth.js"></script>
-    <script>
-        // Placeholder for your Firebase project configuration
-        var firebaseConfig = {
-            apiKey: "AIzaSyD18a6bP6Ec0QCsLm5bl04prN_WAchA4Is",
-            authDomain: "gamtrack-3a2f2.firebaseapp.com",
-            projectId: "gamtrack-3a2f2",
-            storageBucket: "gamtrack-3a2f2.appspot.com",
-            messagingSenderId: "492662811532",
-            appId: "1:492662811532:web:4e59f354ffbc43eee384a9",
-            measurementId: "G-5VTT1HQLJ1"
-        };
-        firebase.initializeApp(firebaseConfig);
-        var db = firebase.firestore();
-
-        document.addEventListener("DOMContentLoaded", function() {
-            const currentUser = firebase.auth().currentUser;
-            if (currentUser) {
-                fetchUsernameAndListenForMessages(currentUser.uid);
-            }
-        });
-
-        function fetchUsernameAndListenForMessages(uid) {
-            db.collection("User").doc(uid).get()
-                .then(doc => {
-                    if (doc.exists) {
-                        const username = doc.data().username;
-                        setupMessageSending(username);
-                        startListeningForMessages(username);
-                    } else {
-                        console.log("No user document found!");
-                    }
-                })
-                .catch(error => {
-                    console.error("Error fetching user document:", error);
-                });
-        }
-
-        function setupMessageSending(username) {
-            document.getElementById("messageForm").addEventListener("submit", function(event) {
-                event.preventDefault();
-                const messageContent = document.getElementById("messageInput").value.trim();
-                const receiverUsername = document.getElementById("receiverInput").value.trim();
-                if (messageContent && receiverUsername) {
-                    sendMessage(messageContent, username, receiverUsername);
-                }
-            });
-        }
-
-        function sendMessage(messageContent, senderUsername, receiverUsername) {
-            // First, add the message without the messageId
-            db.collection("DirectMessage").add({
-                content: messageContent,
-                sender: senderUsername,
-                receiver: receiverUsername,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(docRef => {
-                // Update the document with its own generated ID as messageId
-                docRef.update({ messageId: docRef.id });
-            });
-        }
-
-        function startListeningForMessages(username) {
-            // Listening for messages sent by the user
-            db.collection("DirectMessage")
-                .where("sender", "==", username)
-                .orderBy("createdAt")
-                .onSnapshot(handleSnapshot);
-
-            // Listening for messages received by the user
-            db.collection("DirectMessage")
-                .where("receiver", "==", username)
-                .orderBy("createdAt")
-                .onSnapshot(handleSnapshot);
-        }
-
-        function handleSnapshot(snapshot) {
-            snapshot.docChanges().forEach(change => {
-                if (change.type === "added") {
-                    const message = change.doc.data();
-                    appendMessageToChatBox(message, username === message.sender);
-                }
-            });
-        }
-
-        function appendMessageToChatBox(message, isSender) {
-            const chatBox = document.getElementById("chat-box");
-            const messageElement = document.createElement("div");
-            messageElement.style.color = isSender ? "red" : "green";
-            messageElement.textContent = `${isSender ? 'You' : message.sender}: ${message.content}`;
-            chatBox.appendChild(messageElement);
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-    </script>
 </head>
 <body>
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js" integrity="sha384-ZzWtAowo/5LtvOA47pVV9e8QcKzxGgOYemg2VWeD5QV9zF5nLlFh4MlFDR4MXp8a" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8sh+gCzervKLqv8BHSIARRsWiFqHSJY6TtFzLX" crossorigin="anonymous"></script>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <a class="navbar-brand" href="#">Gamer Network</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
@@ -168,9 +69,6 @@
                 <a class="nav-link" href="Contact Us.html" onclick="changeNavbarColor(event)">Request</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="Notifcation.html" onclick="changeNavbarColor(event)">Notifications</a>
-            </li>
-            <li class="nav-item">
                 <a class="nav-link" href="Chat.html" onclick="changeNavbarColor(event)">Chat</a>
             </li>
             <li class="nav-item">
@@ -182,9 +80,8 @@
         </ul>
     </div>
 </nav>
-<p></p>
-<p></p>
-<br></br>
+
+
 <div class="chat-container">
     <div id="chat-box"></div>
     <form id="messageForm">
@@ -193,5 +90,104 @@
         <button type="submit">Send</button>
     </form>
 </div>
+
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-auth.js"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js" integrity="sha384-ZzWtAowo/5LtvOA47pVV9e8QcKzxGgOYemg2VWeD5QV9zF5nLlFh4MlFDR4MXp8a" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8sh+gCzervKLqv8BHSIARRsWiFqHSJY6TtFzLX" crossorigin="anonymous"></script>
+<script>
+    // Firebase project configuration
+    var firebaseConfig = {
+        apiKey: "AIzaSyD18a6bP6Ec0QCsLm5bl04prN_WAchA4Is",
+        authDomain: "gamtrack-3a2f2.firebaseapp.com",
+        projectId: "gamtrack-3a2f2",
+        storageBucket: "gamtrack-3a2f2.appspot.com",
+        messagingSenderId: "492662811532",
+        appId: "1:492662811532:web:4e59f354ffbc43eee384a9",
+        measurementId: "G-5VTT1HQLJ1"
+    };
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.firestore();
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const currentUser = firebase.auth().currentUser;
+        if (currentUser) {
+            fetchUsernameAndListenForMessages(currentUser.uid);
+        }
+    });
+
+    function fetchUsernameAndListenForMessages(uid) {
+        db.collection("User").doc(uid).get()
+            .then(doc => {
+                if (doc.exists) {
+                    const username = doc.data().username;
+                    setupMessageSending(username);
+                    startListeningForMessages(username);
+                } else {
+                    console.log("No user document found!");
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching user document:", error);
+            });
+    }
+
+    function setupMessageSending(username) {
+        document.getElementById("messageForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const messageContent = document.getElementById("messageInput").value.trim();
+            const receiverUsername = document.getElementById("receiverInput").value.trim();
+            if (messageContent && receiverUsername) {
+                sendMessage(messageContent, username, receiverUsername);
+            }
+        });
+    }
+
+    function sendMessage(messageContent, senderUsername, receiverUsername) {
+        db.collection("DirectMessage").add({
+            content: messageContent,
+            sender: senderUsername,
+            receiver: receiverUsername,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(docRef => {
+            docRef.update({ messageId: docRef.id });
+        });
+    }
+
+    function startListeningForMessages(username) {
+        db.collection("DirectMessage")
+            .where("sender", "==", username)
+            .onSnapshot(snapshot => {
+                snapshot.docChanges().forEach(change => {
+                    if (change.type === "added") {
+                        const message = change.doc.data();
+                        appendMessageToChatBox(message, username === message.sender);
+                    }
+                });
+            });
+
+        db.collection("DirectMessage")
+            .where("receiver", "==", username)
+            .onSnapshot(snapshot => {
+                snapshot.docChanges().forEach(change => {
+                    if (change.type === "added") {
+                        const message = change.doc.data();
+                        appendMessageToChatBox(message, false);
+                    }
+                });
+            });
+    }
+
+    function appendMessageToChatBox(message, isSender) {
+        const chatBox = document.getElementById("chat-box");
+        const messageElement = document.createElement("div");
+        messageElement.style.color = isSender ? "red" : "green";
+        messageElement.textContent = `${isSender ? 'You' : message.sender}: ${message.content}`;
+        chatBox.appendChild(messageElement);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+</script>
 </body>
 </html>
