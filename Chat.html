@@ -1,87 +1,189 @@
 <!DOCTYPE html>
-<!--suppress HtmlUnknownTarget -->
+<!--suppress ALL -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat App - Gamer Network</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-auth.js"></script>
+    <title>User Chat</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <style>
+        body{
+            background-image: url("GameFood.jpg");
+        }
+        .chat-container .card-body {
+            max-height: 500px;
+            overflow-y: auto;
+            color: #343a40;
+        }
+        .message {
+            border: 3px solid #0a58ca;
+            background-color: #495057;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .sent {
+            background-color: #ffc107;
+        }
+        .received {
+            background-color: #6610f2;
+        }
+        .container{
+            color: #0f5132;
+            font-weight: bold;
+        }
+        #chatBox {
+            color: #343a40;
+        }
+        .card-footer{
+            color: #0a58ca;
+        }
+        .card-header {
+            background-color: #6610f2; /* Deep purple header */
+            color: #fff; /* White text */
+        }
+        #chatBox {
+            height: 300px;
+            overflow-y: auto;
+            border: 5px solid #6610f2;
+            border-radius: 0.25rem;
+            padding: 10px;
+            background-color: #fff; /* White background for the chat box */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05); /* Subtle shadow for depth */
+        }
+        .card-footer {
+            background-color: #f7f7f7; /* Light gray footer to match body background */
+        }
+        .message {
+            background-color: #e9ecef; /* Light gray message bubbles */
+            border-radius: 15px;
+            padding: 10px;
+            margin-bottom: 10px;
+            word-break: break-word; /* Ensure long words do not break the layout */
+        }
+        .sent {
+            background-color: #d1e7dd; /* Light green for sent messages */
+            text-align: right;
+        }
+        .received {
+            background-color: #f8d7da; /* Light red for received messages */
+        }
+        .input-group {
+            margin-top: 20px; /* Add space between dropdown and message input */
+        }
+        .form-select, .form-control {
+            border: 2px solid #6610f2; /* Purple borders for inputs */
+        }
+        .btn-primary {
+            background-color: #6610f2; /* Purple button to match theme */
+            border: none; /* Remove default border */
+        }
+        .btn-primary:hover {
+            background-color: #520dc2; /* Darker purple on hover */
+        }
+        .button {
+            color: #6610f2;
+        }
+        .btn-purple {
+            background-color: #6f42c1; /* A purple color */
+            border-color: #643ab0; /* A slightly darker purple border for effect */
+            color: white; /* White text */
+        }
 
-    <!-- Replace YOUR_FIREBASE_VERSION with the version you're using -->
+        .btn-purple:hover {
+            background-color: #5a34a3; /* Darker purple on hover */
+            border-color: #512993; /* Adjust border color on hover if desired */
+        }
+    </style>
 </head>
 <body>
-
-<!-- Navbar Section -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
-<a class="navbar-brand" href="#">Gamer Network</a>
-<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-</button>
-<div class="collapse navbar-collapse" id="navbarNav">
-    <ul class="navbar-nav ml-auto">
-        <li class="nav-item active">
-            <a class="nav-link" href="About us.html">Home</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="UserProfile.html">Profile</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="Pairing Form.html" onclick="changeNavbarColor(event)">Pairing</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="Search Bar.html" onclick="changeNavbarColor(event)">Search</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="UserPost.html" onclick="changeNavbarColor(event)">Posts</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="Message.html" onclick="changeNavbarColor(event)">Messages</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="Contact Us.html" onclick="changeNavbarColor(event)">Request</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="Chat.html" onclick="changeNavbarColor(event)">Chat</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="Friendship.html" onclick="changeNavbarColor(event)">Friendship</a>
-        </li>
-        <li class="nav-item ml-2">
-            <a class="nav-link" href="Login In.html">Logout</a>
-        </li>
-    </ul>
-</div>
+    <a class="navbar-brand" href="#">Gamer Network</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href="About us.html">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="UserProfile.html">Profile</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="Pairing Form.html" onclick="changeNavbarColor(event)">Pairing</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="Search Bar.html" onclick="changeNavbarColor(event)">Search</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="UserPost.html" onclick="changeNavbarColor(event)">Posts</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="Message.html" onclick="changeNavbarColor(event)">Messages</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="Contact Us.html" onclick="changeNavbarColor(event)">Request</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="Chat.html" onclick="changeNavbarColor(event)">Chat</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="Friendship.html" onclick="changeNavbarColor(event)">Friendship</a>
+            </li>
+            <li class="nav-item ml-2">
+                <a class="nav-link" href="Login In.html">Logout</a>
+            </li>
+        </ul>
+    </div>
 </nav>
+<br></br>
+<br></br>
 
-
-<!-- Chat Application Content -->
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-6">
-            <!-- Sending messages -->
-            <form id="message-form">
-                <div class="form-group">
-                    <label for="message-content">Message:</label>
-                    <textarea class="form-control" id="message-content" rows="3" placeholder="Type your message here..."></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary">Send</button>
-                <button type="button" id="show-messages" class="btn btn-info">Show My Messages</button> <!-- Show Messages Button -->
-            </form>
-        </div>
-        <div class="col-md-6">
-            <!-- Receiving messages -->
-            <div id="messages" class="message-container"></div>
+<div class="container mt-3">
+    <div class="card">
+        <h4 class="card-header text-center">
+            Chat
+        </h4>
+        <div class="card-footer">
+            <label for="userList" class="form-label">Select Chat Partner:</label>
+            <select id="userList" class="form-select mb-3">
+                <!-- User options will be populated here -->
+            </select>
+            <div class="input-group mb-3">
+                <input type="text" id="messageInput" class="form-control" placeholder="Type a message">
+                <button id="sendButton" class="btn btn-primary">Send</button>
+            </div>
         </div>
     </div>
 </div>
 
+<br></br>
+<br></br>
+<!-- New Section for Showing All Messages -->
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header text-center">
+            All Messages
+        </div>
+        <div class="card-body">
+            <button id="showMessagesButton" class="btn btn-purple" >Show Messages</button>
+            <div id="allMessagesBox" style="height: 300px; overflow-y: auto; border: 1px solid #ced4da; border-radius: 0.25rem; padding: 10px; margin-top: 20px;">
+                <!-- All messages will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-auth.js"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
-    // Firebase configuration
-    var firebaseConfig = {
+    // Initialize Firebase
+    const firebaseConfig = {
         apiKey: "AIzaSyD18a6bP6Ec0QCsLm5bl04prN_WAchA4Is",
         authDomain: "gamtrack-3a2f2.firebaseapp.com",
         projectId: "gamtrack-3a2f2",
@@ -90,81 +192,185 @@
         appId: "1:492662811532:web:4e59f354ffbc43eee384a9",
         measurementId: "G-5VTT1HQLJ1"
     };
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
-    var db = firebase.firestore();
-
-    let currentUsername = null;
+    const db = firebase.firestore();
 
     firebase.auth().onAuthStateChanged(function(user) {
         if (user) {
-            db.collection('User').doc(user.uid).get().then(function(doc) {
-                if (doc.exists) {
-                    currentUsername = doc.data().username;
-                    listenForIncomingMessages(currentUsername);
-                } else {
-                    console.log("No user data found!");
-                }
-            }).catch(function(error) {
-                console.log("Error fetching user:", error);
-            });
-
-            document.getElementById('message-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                var messageContent = document.getElementById('message-content').value;
-                if (messageContent.trim() === "") return; // Prevent empty messages
-
-                db.collection('DirectMessage').add({
-                    content: messageContent,
-                    sender: currentUsername,
-                    receiver: 'receiverUsername', // Placeholder: Adapt based on your app's logic
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                }).then(function() {
-                    document.getElementById('message-content').value = ''; // Clear the textarea
-                }).catch(function(error) {
-                    console.error("Error sending message: ", error);
-                });
-            });
-
-            document.getElementById('show-messages').addEventListener('click', function() {
-                showSentMessages(currentUsername);
-            });
+            // User is signed in
+            populateUserList();
+            fetchAndDisplayMessages();
         } else {
-            console.log("User is not signed in.");
+            // User is signed out
+            console.log("User is signed out.");
+            // Handle user sign out (e.g., redirect to login page)
         }
     });
 
-    function listenForIncomingMessages(username) {
+    function populateUserList() {
+        const userList = document.getElementById('userList');
+        db.collection('User').get().then(snapshot => {
+            snapshot.forEach(doc => {
+                const user = doc.data();
+                const option = document.createElement('option');
+                option.value = doc.id;
+                option.textContent = user.username || 'Unnamed User';
+                userList.appendChild(option);
+            });
+        });
+    }
+
+    function displayMessage(text, isSent, messageId) {
+        const chatBox = document.getElementById('chatBox');
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message', isSent ? 'sent' : 'received');
+        messageDiv.textContent = text;
+        messageDiv.setAttribute('data-message-id', messageId);
+        chatBox.appendChild(messageDiv);
+    }
+
+    function sendMessage() {
+        const messageInput = document.getElementById('messageInput');
+        const message = messageInput.value;
+        const userList = document.getElementById('userList');
+        const receiverId = userList.value;
+        const senderId = firebase.auth().currentUser.uid;
+
+        if (message && receiverId) {
+            db.collection('DirectMessage').add({
+                senderId: senderId,
+                receiverId: receiverId,
+                message: message,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).then((docRef) => {
+                db.collection('DirectMessage').doc(docRef.id).set({
+                    messageId: docRef.id
+                }, { merge: true });
+                messageInput.value = '';
+                fetchAndDisplayMessages(); // Fetch messages again to update the view
+            }).catch((error) => {
+                console.error("Error sending message: ", error);
+            });
+        }
+    }
+
+    function fetchAndDisplayMessages() {
+        const chatBox = document.getElementById('chatBox');
+        chatBox.innerHTML = ''; // Clear the chat box first
+        const currentUserId = firebase.auth().currentUser.uid;
+        const selectedUserId = document.getElementById('userList').value;
+
         db.collection('DirectMessage')
-            .where('receiver', '==', username)
-            .orderBy('createdAt')
-            .onSnapshot(snapshot => {
-                const messagesContainer = document.getElementById('messages');
-                messagesContainer.innerHTML = ''; // Clear existing messages
-                snapshot.forEach(doc => {
-                    const messageData = doc.data();
-                    const messageElement = document.createElement('div');
-                    messageElement.textContent = `${messageData.sender}: ${messageData.content}`;
-                    messagesContainer.appendChild(messageElement);
+            .where('senderId', 'in', [currentUserId, selectedUserId])
+            .where('receiverId', 'in', [currentUserId, selectedUserId])
+            .orderBy('createdAt', 'asc')
+            .get()
+            .then(querySnapshot => {
+                querySnapshot.forEach(doc => {
+                    const message = doc.data();
+                    const isSent = message.senderId === currentUserId;
+                    const messageId = doc.id;
+                    displayMessage(message.message, isSent, messageId);
                 });
             });
     }
 
-    function showSentMessages(username) {
+    document.getElementById('sendButton').addEventListener('click', sendMessage);
+
+    function fetchAndDisplayMessages() {
+        const chatBox = document.getElementById('chatBox');
+        const currentUserId = getCurrentUserId(); // This should return the authenticated user's ID
+        const selectedUserId = document.getElementById('userList').value;
+
+        chatBox.innerHTML = ''; // Clear chat box first
+
         db.collection('DirectMessage')
-            .where('sender', '==', username)
-            .orderBy('createdAt')
-            .onSnapshot(snapshot => {
-                const messagesContainer = document.getElementById('messages');
-                messagesContainer.innerHTML = '<h5>My Sent Messages</h5>'; // Add a header and clear previous messages
-                snapshot.forEach(doc => {
-                    const messageData = doc.data();
-                    const messageElement = document.createElement('div');
-                    messageElement.textContent = `To ${messageData.receiver}: ${messageData.content}`;
-                    messagesContainer.appendChild(messageElement);
+            .where('senderId', 'in', [currentUserId, selectedUserId])
+            .where('receiverId', 'in', [currentUserId, selectedUserId])
+            .orderBy('createdAt', 'asc')
+            .get()
+            .then(querySnapshot => {
+                querySnapshot.forEach(doc => {
+                    const message = doc.data();
+                    const isSent = message.senderId === currentUserId;
+                    displayMessage(message.message, isSent); // Display each message
                 });
             });
     }
+
+    function displayMessage(messageText, isSent) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message', isSent ? 'sent' : 'received');
+        messageDiv.textContent = messageText;
+        document.getElementById('chatBox').appendChild(messageDiv); // Appends the message div to the chat box
+    }
+
+    // Get the ID of the current user
+    function getCurrentUserId() {
+        const user = firebase.auth().currentUser;
+        return user ? user.uid : null; // Replace with null or your method of handling unsigned users
+    }
+
+    // Event listener for the send button
+    document.getElementById('sendButton').addEventListener('click', sendMessage);
+
+    // Call to populate the user list and set up initial message display
+    document.addEventListener('DOMContentLoaded', function() {
+        // Make sure user is signed in before calling these functions
+        populateUserList();
+        fetchAndDisplayMessages();
+    });
+    // Function to fetch and display all messages for the current user
+    function showAllMessages() {
+        const allMessagesBox = document.getElementById('allMessagesBox');
+        const currentUserId = getCurrentUserId(); // Get the current user's ID
+
+        allMessagesBox.innerHTML = ''; // Clear previous messages
+
+        // Fetch all messages where the current user is the sender or the receiver
+        db.collection('DirectMessage')
+            .where('senderId', '==', currentUserId)
+            .get()
+            .then(querySnapshot => {
+                querySnapshot.forEach(doc => {
+                    const message = doc.data();
+                    fetchUsername(message.receiverId).then(username => {
+                        addMessageToBox(message.message, 'sent', username);
+                    });
+                });
+            });
+
+        db.collection('DirectMessage')
+            .where('receiverId', '==', currentUserId)
+            .get()
+            .then(querySnapshot => {
+                querySnapshot.forEach(doc => {
+                    const message = doc.data();
+                    fetchUsername(message.senderId).then(username => {
+                        addMessageToBox(message.message, 'received', username);
+                    });
+                });
+            });
+    }
+
+
+    // Helper function to add messages to the message box
+    // Fetch username based on userId
+    function fetchUsername(userId) {
+        return db.collection('User').doc(userId).get().then(doc => {
+            return doc.exists ? doc.data().username : "Unknown User";
+        });
+    }
+
+    // Add a single message to the chat box
+    function addMessageToBox(messageText, messageType, username) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message', messageType);
+        messageDiv.textContent = messageType === 'sent' ? `You: ${messageText}` : `${username}: ${messageText}`;
+        allMessagesBox.appendChild(messageDiv);
+    }
+    // Event listener for the 'Show Messages' button
+    document.getElementById('showMessagesButton').addEventListener('click', showAllMessages);
 </script>
 </body>
 </html>

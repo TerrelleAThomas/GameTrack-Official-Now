@@ -107,7 +107,7 @@
         firestore.collection('AMessage').add({
             username: username,
             content: message,
-            timestamp: timestamp,
+            createdAt: timestamp,
             Admin: true  // Adding the Admin field with value true
         }).then(function(docRef) {
             console.log("Message sent successfully with ID: ", docRef.id);
