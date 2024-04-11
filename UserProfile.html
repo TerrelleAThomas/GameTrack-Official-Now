@@ -110,6 +110,16 @@
     </div>
 </div>
 
+<br></br>
+<div class="container d-flex justify-content-center">
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Delete Account Button -->
+            <button class="btn btn-danger" onclick="update()">Update Profile</button>
+        </div>
+    </div>
+</div>
+
 <!-- Bootstrap JS and dependencies -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"></script>
@@ -224,6 +234,46 @@
 
     // Call the function to load user's posts when the page is loaded
     window.onload = loadUserPosts;
+
+
+
+
+    function confirmDeleteAccount() {
+        const user = firebase.auth().currentUser;
+
+        if (!user) {
+            alert("No signed-in user found.");
+            return;
+        }
+
+        // Delete the Firestore User record first
+        db.collection('User').doc(user.uid).delete().then(() => {
+            console.log("Firestore user record deleted successfully.");
+
+            // Now delete the Firebase Auth user
+            user.delete().then(() => {
+                // User account deleted.
+                console.log("Firebase Auth user deleted successfully.");
+                // Redirect to sign-up page or log out the user
+                window.location.href = 'SignIn.html';
+            }).catch((error) => {
+                console.error("Error deleting Firebase Auth user: ", error);
+                alert("Failed to delete Firebase Auth user account. Please try again.");
+            });
+
+        }).catch((error) => {
+            console.error("Error deleting Firestore user record: ", error);
+            alert("Failed to delete user data from Firestore. Please try again.");
+        });
+    }
+
+    function update() {
+        // Specify the URL you want to redirect to
+        var deletionPageUrl = "Update.html";
+
+        // Redirect the user to the specified URL
+        window.location.href = deletionPageUrl;
+    }
 </script>
 </body>
 </html>

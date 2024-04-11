@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Profile</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+    <script>
+        // Your web app's Firebase configuration
+        var firebaseConfig = {
+            apiKey: "AIzaSyD18a6bP6Ec0QCsLm5bl04prN_WAchA4Is",
+            authDomain: "gamtrack-3a2f2.firebaseapp.com",
+            projectId: "gamtrack-3a2f2",
+            storageBucket: "gamtrack-3a2f2.appspot.com",
+            messagingSenderId: "492662811532",
+            appId: "1:492662811532:web:4e59f354ffbc43eee384a9",
+            measurementId: "G-5VTT1HQLJ1"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+    </script>
+</head>
+<body>
+<div class="container mt-5">
+    <form id="signupForm">
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" class="form-control" id="username" placeholder="Choose a username" required>
+        </div>
+        <div class="form-group">
+            <label for="gameConsole">Game Console</label>
+            <select class="form-control" id="gameConsole" required>
+                <option value="">Select your console</option>
+                <option value="PS4">PS4</option>
+                <option value="XboxOne">Xbox One</option>
+                <option value="NintendoSwitch">Nintendo Switch</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Genre Preference</label>
+            <!-- Genre checkboxes -->
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="Action" id="genreAction">
+                <label class="form-check-label" for="genreAction">Action</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="Adventure" id="genreAdventure">
+                <label class="form-check-label" for="genreAdventure">Adventure</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="RPG" id="genreRPG">
+                <label class="form-check-label" for="genreRPG">RPG</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="Simulation" id="genreSimulation">
+                <label class="form-check-label" for="genreSimulation">Simulation</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="Strategy" id="genreStrategy">
+                <label class="form-check-label" for="genreStrategy">Strategy</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="Sports" id="genreSports">
+                <label class="form-check-label" for="genreSports">Sports</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="Puzzle" id="genrePuzzle">
+                <label class="form-check-label" for="genrePuzzle">Puzzle</label>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-outline-primary btn-block">Update</button>
+    </form>
+</div>
+<br></br>
+<button type="button" class="btn btn-outline-primary btn-block" onclick="window.location.href='UserProfile.html';">Back to Profile</button>
+
+<script>
+    document.getElementById('signupForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // Check if user is signed in
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user) {
+                const uid = user.uid;
+                const username = document.getElementById('username').value;
+                const gameConsole = document.getElementById('gameConsole').value;
+
+                // Gather genre preferences
+                const selectedGenres = [];
+                ['genreAction', 'genreAdventure', 'genreRPG', 'genreSimulation', 'genreStrategy', 'genreSports', 'genrePuzzle'].forEach(genreId => {
+                    const checkbox = document.getElementById(genreId);
+                    if (checkbox && checkbox.checked) {
+                        selectedGenres.push(checkbox.value);
+                    }
+                });
+
+                // Join the selected genres with a comma to store as a string
+                const genres = selectedGenres.join(', ');
+
+                // Update Firestore record
+                db.collection("User").doc(uid).set({
+                    username, gameConsole, 'Genre Preference': genres
+                }, { merge: true })
+                    .then(() => {
+                        console.log("Document successfully updated!");
+                        // Handle successful update, such as redirecting or showing a message
+                    })
+                    .catch((error) => {
+                        console.error("Error updating document: ", error);
+                        // Handle the error
+                    });
+            } else {
+                console.log('User is not logged in.');
+                // Redirect to login or handle accordingly
+            }
+        });
+    });
+</script>
+</body>
+</html>
