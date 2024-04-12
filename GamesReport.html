@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Play Report</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<style>
+    body{
+        background-image: url("Cool12.jpg");
+    }
+    .container {
+        max-width: 600px;
+        margin: auto;
+        padding: 20px;
+        color: #6610f2;
+        font-weight: bold;
+        background-color: #dfe0e1;
+
+    }
+
+    h2, h4 {
+        text-align: center;
+        font-weight: bold;
+    }
+
+    #dateForm {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 5px 5px 5px rgba(159, 90, 253)
+    }
+
+    .form-group input[type=date] {
+        margin-bottom: 16px;
+    }
+
+    .btn-primary {
+        width: 100%;
+        background-color: #6610f2;
+        font-weight: bold;
+    }
+
+    #report {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 5px 5px 5px rgba(159, 90, 253);
+    }
+    body {
+        background-image: url("S.jpg");
+    }
+</style>
+<body>
+
+<div class="container mt-5" style="max-width: 600px; margin: auto; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+    <h2 style="text-align: center; color: #333;">Game Play Report</h2>
+    <form id="dateForm" style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+        <div class="form-group">
+            <label for="startDateInput">Start Date:</label>
+            <input type="date" id="startDateInput" class="form-control" style="margin-bottom: 16px;">
+        </div>
+        <div class="form-group">
+            <label for="endDateInput">End Date:</label>
+            <input type="date" id="endDateInput" class="form-control" style="margin-bottom: 16px;">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Generate Report</button>
+    </form>
+    <div id="report" class="mt-3" style="background: white; padding: 20px; border-radius: 8px;"></div>
+</div>
+
+
+<!-- Firebase SDKs and initialization -->
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+<script>
+    var firebaseConfig = {
+        // Your Firebase configuration
+        apiKey: "AIzaSyD18a6bP6Ec0QCsLm5bl04prN_WAchA4Is",
+        authDomain: "gamtrack-3a2f2.firebaseapp.com",
+        projectId: "gamtrack-3a2f2",
+        storageBucket: "gamtrack-3a2f2.appspot.com",
+        messagingSenderId: "492662811532",
+        appId: "1:492662811532:web:4e59f354ffbc43eee384a9",
+        measurementId: "G-5VTT1HQLJ1"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    document.getElementById('dateForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const startDateValue = document.getElementById('startDateInput').value;
+        const endDateValue = document.getElementById('endDateInput').value;
+        const reportDiv = document.getElementById('report');
+
+        if (!startDateValue || !endDateValue) {
+            alert('Please fill in both dates.');
+            return;
+        }
+
+        const db = firebase.firestore();
+        const userGamePlayRef = db.collection('UserGamePlay');
+        const startTimestamp = firebase.firestore.Timestamp.fromDate(new Date(startDateValue));
+        const endTimestamp = firebase.firestore.Timestamp.fromDate(new Date(endDateValue + 'T23:59:59'));
+
+        try {
+            const snapshot = await userGamePlayRef.where('startDate', '>=', startTimestamp)
+                .where('startDate', '<=', endTimestamp)
+                .get();
+            const playCount = snapshot.size;
+            reportDiv.innerHTML = `<h4>Total Game Plays: ${playCount}</h4>`;
+        } catch (error) {
+            console.error('Error getting documents: ', error);
+            reportDiv.innerHTML = `<p>Error generating report. Please try again.</p>`;
+        }
+    });
+</script>
+</body>
+</html>

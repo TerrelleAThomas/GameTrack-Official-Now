@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Report</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<style>
+    body{
+        background-image: url("../../../Final-GameTrack/GameTrack-Official/Game23.jpg");
+    }
+    h5, h2, h4{
+        font-weight: bold;
+        color: #0dcaf0;
+    }
+    ul {
+        list-style-type: none;
+        padding: 0;
+    }
+    li {
+        padding: 8px;
+        background-color: #f8f8f8;
+        font-weight: bold;
+        box-shadow: 5px 5px 5px rgba(159, 90, 253);
+        border: 2px solid #ffc107;
+    }
+    li:last-child {
+        border-bottom: none;
+    }
+    p{
+        font-weight: bold;
+        color: #dfe0e1;
+    }
+    .container {
+        background: white; /* White background for the container */
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Adds shadow to container */
+        border-radius: 8px; /* Rounded corners for the container */
+        padding: 20px; /* Padding inside the container */
+        max-width: 600px; /* Maximum width of the container */
+        margin: auto; /* Centers the container horizontally */
+    }
+
+    h2 {
+        color: #333; /* Dark grey color for the heading */
+        margin-bottom: 20px; /* Space below the heading */
+    }
+
+    .form-group {
+        margin-bottom: 15px; /* Space below each form group */
+    }
+
+    label {
+        display: block; /* Makes the label take the full width */
+        margin-bottom: 5px; /* Space below the label */
+        color: #666; /* Medium grey color for text */
+        font-weight: bold;
+    }
+
+    input[type="date"] {
+        width: 100%; /* Full width */
+        padding: 10px; /* Padding inside the input */
+        border: 1px solid #ccc; /* Light grey border */
+        border-radius: 4px; /* Rounded borders */
+    }
+
+    .btn-primary {
+        background-color: #6610f2; /* Blue background */
+        color: white; /* White text */
+        font-weight: bold;
+        border: none; /* No border */
+        padding: 10px 20px; /* Padding around the text */
+        font-size: 16px; /* Font size */
+        border-radius: 5px; /* Rounded corners */
+        box-shadow: 0 4px 8px #6610f2; /* Shadow with a blue tint */
+        transition: background-color 0.3s, box-shadow 0.3s; /* Smooth transition for hover effects */
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3; /* Darker blue when hovered */
+        box-shadow: 0 6px 12px rgba(0, 123, 255, 0.75); /* Larger shadow when hovered */
+    }
+
+    .btn-primary:active {
+        background-color: #004085; /* Even darker blue when clicked */
+        box-shadow: 0 2px 4px rgba(0, 123, 255, 0.75); /* Smaller shadow when clicked */
+    }
+
+    .btn-primary:focus {
+        outline: none; /* Removes the outline */
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.5); /* Blue glow around the button */
+    }
+
+</style>
+<body>
+<div class="container mt-5">
+    <h2>Post Report</h2>
+    <form id="dateForm">
+        <div class="form-group">
+            <label for="startDate">Start Date:</label>
+            <input type="date" id="startDate" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="endDate">End Date:</label>
+            <input type="date" id="endDate" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-primary">Generate Report</button>
+    </form>
+    <div id="report" class="mt-3"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+<script>
+    // Your web app's Firebase configuration
+    var firebaseConfig = {
+        apiKey: "AIzaSyD18a6bP6Ec0QCsLm5bl04prN_WAchA4Is",
+        authDomain: "gamtrack-3a2f2.firebaseapp.com",
+        projectId: "gamtrack-3a2f2",
+        storageBucket: "gamtrack-3a2f2.appspot.com",
+        messagingSenderId: "492662811532",
+        appId: "1:492662811532:web:4e59f354ffbc43eee384a9",
+        measurementId: "G-5VTT1HQLJ1"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    document.getElementById('dateForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        const reportDiv = document.getElementById('report');
+
+        if (!startDate || !endDate) {
+            alert('Please fill in both dates.');
+            return;
+        }
+
+        const db = firebase.firestore();
+        const postsRef = db.collection('Post');
+        const startTimestamp = firebase.firestore.Timestamp.fromDate(new Date(startDate));
+        const endTimestamp = firebase.firestore.Timestamp.fromDate(new Date(endDate + 'T23:59:59'));
+
+        try {
+            const snapshot = await postsRef.where('timestamp', '>=', startTimestamp)
+                .where('timestamp', '<=', endTimestamp)
+                .get();
+            let reportHTML = `<h4>Total Posts: ${snapshot.size}</h4>`;
+
+            if (!snapshot.empty) {
+                reportHTML += `<ul>`;
+                snapshot.forEach(doc => {
+                    const postData = doc.data();
+                    reportHTML += `<li>${postData.timestamp.toDate().toLocaleDateString()}</li>`;
+                });
+                reportHTML += `</ul>`;
+            } else {
+                reportHTML += `<p>No posts found in the specified date range.</p>`;
+            }
+
+            reportDiv.innerHTML = reportHTML;
+        } catch (error) {
+            console.error('Error generating report: ', error);
+        }
+    });
+</script>
+</body>
+</html>

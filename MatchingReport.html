@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gamers and Games Report</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<style>
+    body{
+        background-image: url("Game23.jpg");
+    }
+h5, h2{
+    font-weight: bold;
+    color: #dfe0e1;
+}
+    ul {
+        list-style-type: none;
+        padding: 0;
+    }
+    li {
+        padding: 8px;
+        background-color: #f8f8f8;
+        font-weight: bold;
+        box-shadow: 5px 5px 5px rgba(159, 90, 253);
+        border: 2px solid #ffc107;
+    }
+    li:last-child {
+        border-bottom: none;
+    }
+    p{
+        font-weight: bold;
+        color: #dfe0e1;
+    }
+    #generateReportBtn{
+        background-color: #6610f2;
+        font-weight: bold;
+    }
+</style>
+<body>
+<div class="container mt-5">
+    <h2>Gamers and Games Report</h2>
+    <button id="generateReportBtn" class="btn btn-primary">Generate Report</button>
+    <div id="report" class="mt-3"></div>
+</div>
+
+<!-- Firebase SDKs and initialization -->
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+<script>
+    var firebaseConfig = {
+        apiKey: "AIzaSyD18a6bP6Ec0QCsLm5bl04prN_WAchA4Is",
+        authDomain: "gamtrack-3a2f2.firebaseapp.com",
+        projectId: "gamtrack-3a2f2",
+        storageBucket: "gamtrack-3a2f2.appspot.com",
+        messagingSenderId: "492662811532",
+        appId: "1:492662811532:web:4e59f354ffbc43eee384a9",
+        measurementId: "G-5VTT1HQLJ1"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    const db = firebase.firestore();
+
+    async function getUserName(userId) {
+        const userDoc = await db.collection('User').doc(userId).get();
+        return userDoc.exists ? userDoc.data().username : 'Unknown User'; // Replace 'username' with your actual field name for username
+    }
+
+    async function generateReport() {
+        const reportDiv = document.getElementById('report');
+        reportDiv.innerHTML = '<p>Generating report, please wait...</p>'; // Feedback for the user
+        let reportHTML = '';
+
+        try {
+            // Fetch all unique games that have been played
+            const gamesSnapshot = await db.collection('Game').get();
+            for (const gameDoc of gamesSnapshot.docs) {
+                const gameData = gameDoc.data();
+                const gameId = gameDoc.id;
+                const gameTitle = gameData.Title; // Ensure this is the correct field name for the game's title
+
+                // Find all user game plays for this game
+                const userGamePlaysSnapshot = await db.collection('UserGamePlay').where('gameId', '==', gameId).get();
+
+                if (!userGamePlaysSnapshot.empty) {
+                    let usersListHTML = '<ul>';
+                    for (const playDoc of userGamePlaysSnapshot.docs) {
+                        const userId = playDoc.data().userId;
+                        const userName = await getUserName(userId);
+                        usersListHTML += `<li>${userName}</li>`;
+                    }
+                    usersListHTML += '</ul>';
+                    reportHTML += `<h5>Game: ${gameTitle}</h5>${usersListHTML}`;
+                }
+            }
+
+            reportDiv.innerHTML = reportHTML || '<p>No games found or no plays recorded.</p>';
+        } catch (error) {
+            console.error('Error generating report: ', error);
+            reportDiv.innerHTML = `<p>Error generating report. Please try again.</p>`;
+        }
+    }
+
+    document.getElementById('generateReportBtn').addEventListener('click', generateReport);
+</script>
+</body>
+</html>

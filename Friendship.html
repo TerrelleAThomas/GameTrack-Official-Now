@@ -1,33 +1,53 @@
 <!DOCTYPE html>
-<!--suppress HtmlUnknownTarget -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Friendship Page</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <title>Friendship Management</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-auth.js"></script>
     <style>
-        body {
-            background-color: #f8f9fa;
-            background-image: url('buddy.jpg');
-            padding-top: 50px;
+        body{
+            background-image: url("Friend Chating.jpg");
         }
-        .friend-card {
-            background-color: #ffffff;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        .container {
+            margin-top: 40px;
         }
-        h2{
-            color: #ffffff;
+        .btn-primary {
+            width: 100%;  /* Full-width button */
+        }
+        .list-group-item {
+            margin-top: 5px;
+            border-radius: 5px;
+        }
+        #loadingSpinner {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1050; /* Higher than most elements */
+        }
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+        h2, h3 {
             font-weight: bold;
+            color: #6610f2;
+        }
+        #makeRequestBtn {
+            font-weight: bold;
+            background-color: #6610f2;
+        }
+        #userDropdown, #friendRequestsList{
+            font-weight: bold;
+            border: 1px solid #fd7e14;
         }
     </style>
 </head>
 <body>
-<!-- Navigation Bar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
     <a class="navbar-brand" href="#">Gamer Network</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
@@ -55,6 +75,9 @@
                 <a class="nav-link" href="Message.html" onclick="changeNavbarColor(event)">Messages</a>
             </li>
             <li class="nav-item">
+                <a class="nav-link" href="Contact Us.html" onclick="changeNavbarColor(event)">Request</a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link" href="Chat.html" onclick="changeNavbarColor(event)">Chat</a>
             </li>
             <li class="nav-item">
@@ -67,81 +90,63 @@
     </div>
 </nav>
 
-<p></p>
-<p></p>
-<!-- Friendship Page Title -->
-<div class="container mt-5 mb-4">
-    <h2 class="mb-4 text-center">Friendship Page</h2>
-    <div class="row justify-content-center">
-        <!-- User 1 Card -->
-        <div class="col-xs-12 col-md-3 mb-4">
-            <div class="card friend-card">
-                <img src="https://via.placeholder.com/150" class="card-img-top" alt="User 1">
-                <div class="card-body text-center">
-                    <h5 class="card-title">User 1</h5>
-                    <p class="card-text">Brief description for User 1.</p>
-                    <button type="button" class="btn btn-primary btn-sm btn-rounded" onclick="makeRequest('USER1_ID')">Make a Request</button>
-                    <button type="button" class="btn btn-success btn-sm btn-rounded" onclick="acceptRequest('FRIEND_REQUEST_ID_FOR_USER1')">Accept</button>
-                    <button type="button" class="btn btn-danger btn-sm btn-rounded" onclick="denyRequest('FRIEND_REQUEST_ID_FOR_USER1')">Deny</button>
+<br></br>
+<br></br>
+
+<div class="container">
+    <h2>FriendRequest</h2>
+    <select class="custom-select" id="userDropdown">
+        <!-- Options will be added here dynamically -->
+    </select>
+    <button class="btn btn-primary mt-2" id="makeRequestBtn">Make Request</button>
+</div>
+
+<br></br>
+<br></br>
+
+<div class="container">
+    <h2>Incoming FriendRequests</h2>
+    <div id="friendRequestsList" class="list-group">
+        <!-- Incoming requests will be populated here -->
+    </div>
+</div>
+
+<br></br>
+<br></br>
+
+<div class="container">
+    <br></br>
+    <br></br>
+    <h2>Friendship Status</h2>
+    <br></br>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-6">
+                <h2>Accepted Friendship Requests</h2>
+                <div id="acceptedRequestsList" class="list-group">
+                    <!-- Accepted requests will be listed here -->
                 </div>
             </div>
-        </div>
-
-        <!-- User 2 Card -->
-        <div class="col-xs-12 col-md-3 mb-4">
-            <div class="card friend-card">
-                <img src="https://via.placeholder.com/150" class="card-img-top" alt="User 2">
-                <div class="card-body text-center">
-                    <h5 class="card-title">User 2</h5>
-                    <p class="card-text">Brief description for User 2.</p>
-                    <button type="button" class="btn btn-primary btn-sm btn-rounded" onclick="makeRequest('USER2_ID')">Make a Request</button>
-                    <button type="button" class="btn btn-success btn-sm btn-rounded" onclick="acceptRequest('FRIEND_REQUEST_ID_FOR_USER2')">Accept</button>
-                    <button type="button" class="btn btn-danger btn-sm btn-rounded" onclick="denyRequest('FRIEND_REQUEST_ID_FOR_USER2')">Deny</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- User 3 Card -->
-        <div class="col-xs-12 col-md-3 mb-4">
-            <div class="card friend-card">
-                <img src="https://via.placeholder.com/150" class="card-img-top" alt="User 3">
-                <div class="card-body text-center">
-                    <h5 class="card-title">User 3</h5>
-                    <p class="card-text">Brief description for User 3.</p>
-                    <button type="button" class="btn btn-primary btn-sm btn-rounded" onclick="makeRequest('USER3_ID')">Make a Request</button>
-                    <button type="button" class="btn btn-success btn-sm btn-rounded" onclick="acceptRequest('FRIEND_REQUEST_ID_FOR_USER3')">Accept</button>
-                    <button type="button" class="btn btn-danger btn-sm btn-rounded" onclick="denyRequest('FRIEND_REQUEST_ID_FOR_USER3')">Deny</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- User 4 Card -->
-        <div class="col-xs-12 col-md-3 mb-4">
-            <div class="card friend-card">
-                <img src="https://via.placeholder.com/150" class="card-img-top" alt="User 4">
-                <div class="card-body text-center">
-                    <h5 class="card-title">User 4</h5>
-                    <p class="card-text">Brief description for User 4.</p>
-                    <button type="button" class="btn btn-primary btn-sm btn-rounded" onclick="makeRequest('USER4_ID')">Make a Request</button>
-                    <button type="button" class="btn btn-success btn-sm btn-rounded" onclick="acceptRequest('FRIEND_REQUEST_ID_FOR_USER4')">Accept</button>
-                    <button type="button" class="btn btn-danger btn-sm btn-rounded" onclick="denyRequest('FRIEND_REQUEST_ID_FOR_USER4')">Deny</button>
+            <div class="col-md-6">
+                <h2>Rejected Friendship Requests</h2>
+                <div id="rejectedRequestsList" class="list-group">
+                    <!-- Rejected requests will be listed here -->
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-        <!-- Bootstrap JS and jQuery -->
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+<!-- Placeholder for Toast Messages -->
+<div id="toastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 1050;"></div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
     // Initialize Firebase
-    const firebaseConfig = {
+    var firebaseConfig = {
         apiKey: "AIzaSyD18a6bP6Ec0QCsLm5bl04prN_WAchA4Is",
         authDomain: "gamtrack-3a2f2.firebaseapp.com",
         projectId: "gamtrack-3a2f2",
@@ -151,79 +156,247 @@
         measurementId: "G-5VTT1HQLJ1"
     };
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    var db = firebase.firestore();
 
-
-    function generateFriendshipId() {
-        // This will create a new document reference with an auto-generated ID
-        const newFriendshipRef = db.collection('Friendship').doc();
-        // This is the auto-generated ID you can use
-        const friendshipId = newFriendshipRef.id;
-        // You can now use this ID to create a new document
-        console.log(`Generated friendship ID: ${friendshipId}`);
-        return friendshipId;
-    }
-
-    // Example of using the generateFriendshipId function within makeRequest
-    function makeRequest(receiverUserId) {
-        const currentUser = firebase.auth().currentUser;
-        if (!currentUser) {
-            alert("You must be logged in to make friend requests.");
-            return;
+    // Utility functions
+    function setLoading(isLoading) {
+        var loadingSpinner = document.getElementById('loadingSpinner');
+        if (loadingSpinner) {
+            loadingSpinner.style.display = isLoading ? 'block' : 'none';
         }
+    }
 
-        // Generate a new Friendship ID
-        const friendshipId = generateFriendshipId();
-        const friendRequest = {
-            senderId: currentUser.uid,
-            receiverId: receiverUserId,
-            status: 'requested',
+    function showToast(message, className = 'alert-success') {
+        const toastContainer = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `alert ${className} mt-3`;
+        toast.role = 'alert';
+        toast.textContent = message;
+        toastContainer.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Function to populate user dropdown with other users
+    function populateUserDropdown() {
+        const dropdown = document.getElementById('userDropdown');
+        dropdown.innerHTML = '';
+        db.collection("User").get().then((querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+                if (doc.id !== firebase.auth().currentUser.uid) {
+                    const user = doc.data();
+                    const option = new Option(user.username, doc.id);
+                    dropdown.add(option);
+                }
+            });
+        });
+    }
+
+    // Function to send a friend request
+    function sendFriendRequest(senderId, receiverId) {
+        setLoading(true);
+        db.collection("Friendship").add({
+            sender: senderId,
+            receiver: receiverId,
+            status: "Requested",
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        };
-
-        // Use the generated friendshipId to set the document
-        db.collection('Friendship').doc(friendshipId).set(friendRequest)
-            .then(() => {
-                console.log(`Friend request successfully sent with ID: ${friendshipId}`);
-                alert("Friend request sent.");
+        })
+            .then(function(docRef) {
+                setLoading(false);
+                showToast("Friend request sent successfully.");
+                populateUserDropdown(); // Refresh the dropdown after sending a request
             })
-            .catch((error) => {
-                console.error("Error sending friend request: ", error);
-                alert("Failed to send friend request.");
+            .catch(function(error) {
+                setLoading(false);
+                showToast("Error sending friend request.", 'alert-danger');
             });
     }
 
-    // Function to handle accepting a friend request
-    function acceptRequest(friendshipDocumentId) {
-        // Update the document in the 'Friendship' collection
-        db.collection('Friendship').doc(friendshipDocumentId).update({
-            Status: 'accepted' // Update status to 'accepted'
+    function addRequestToList(list, userId, status) {
+        db.collection("User").doc(userId).get().then(userDoc => {
+            if (userDoc.exists) {
+                const user = userDoc.data();
+                const username = user.username; // replace with the actual field name for the username
+                const item = document.createElement('div');
+                item.classList.add('list-group-item');
+                item.textContent = `From: ${username} - Status: ${status}`;
+                list.appendChild(item);
+            } else {
+                console.error("User not found:", userId);
+            }
+        }).catch(error => {
+            console.error("Error getting user document:", error);
+        });
+    }
+
+    // Function to accept a friend request
+    function acceptFriendRequest(requestId, senderId, receiverId) {
+        setLoading(true);
+        db.collection("Friendship").add({
+            originalRequestId: requestId,
+            sender: senderId,
+            receiver: receiverId,
+            status: "Accepted",
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
         })
             .then(() => {
-                console.log("Friend request accepted.");
-                alert("Friend request accepted.");
+                setLoading(false);
+                showToast("Friend request accepted.");
+                displayFriendshipStatus(); // Refresh the friendship status display
             })
             .catch((error) => {
-                console.error("Error accepting friend request: ", error);
-                alert("Failed to accept friend request.");
+                setLoading(false);
+                showToast("Error accepting request.", 'alert-danger');
             });
     }
 
-    // Function to handle denying a friend request
-    function denyRequest(friendshipDocumentId) {
-        // Update the document in the 'Friendship' collection
-        db.collection('Friendship').doc(friendshipDocumentId).update({
-            Status: 'denied' // Update status to 'denied'
+    // Function to reject a friend request
+    function rejectFriendRequest(requestId, senderId, receiverId) {
+        setLoading(true);
+        db.collection("Friendship").add({
+            originalRequestId: requestId,
+            sender: senderId,
+            receiver: receiverId,
+            status: "Rejected",
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
         })
             .then(() => {
-                console.log("Friend request denied.");
-                alert("Friend request denied.");
+                setLoading(false);
+                showToast("Friend request rejected.");
+                displayFriendshipStatus(); // Refresh the friendship status display
             })
             .catch((error) => {
-                console.error("Error denying friend request: ", error);
-                alert("Failed to deny friend request.");
+                setLoading(false);
+                showToast("Error rejecting request.", 'alert-danger');
             });
     }
+
+    // Function to display incoming friend requests
+    function displayIncomingRequests() {
+        const requestsList = document.getElementById('friendRequestsList');
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user) {
+                db.collection("Friendship")
+                    .where("receiver", "==", user.uid)
+                    .where("status", "==", "Requested")
+                    .onSnapshot((querySnapshot) => {
+                        requestsList.innerHTML = ''; // Clear previous list
+                        querySnapshot.forEach((doc) => {
+                            const requestData = doc.data();
+                            // Fetch the sender's username from the users collection
+                            db.collection("User").doc(requestData.sender).get().then(userDoc => {
+                                if (userDoc.exists) {
+                                    const senderData = userDoc.data();
+                                    const senderUsername = senderData.username; // Make sure 'username' is the correct field
+                                    // Create the list item with the sender's username
+                                    const requestItem = document.createElement('div');
+                                    requestItem.id = `request-${doc.id}`;
+                                    requestItem.classList.add('list-group-item');
+                                    requestItem.innerHTML = `
+                                    <p>From: ${senderUsername}</p>
+                                    <button onclick="acceptFriendRequest('${doc.id}', '${requestData.sender}', '${user.uid}')">Accept</button>
+                                    <button onclick="rejectFriendRequest('${doc.id}', '${requestData.sender}', '${user.uid}')">Reject</button>
+                                `;
+                                    requestsList.appendChild(requestItem);
+                                } else {
+                                    // Handle the case where user document doesn't exist
+                                    console.error("User document not found for sender ID: ", requestData.sender);
+                                }
+                            }).catch(error => {
+                                console.error("Error fetching user data:", error);
+                            });
+                        });
+
+                        if (querySnapshot.empty) {
+                            requestsList.innerHTML = '<div class="list-group-item">No incoming requests.</div>';
+                        }
+                    });
+            }
+        });
+    }
+
+    // Function to display accepted and rejected friend requests
+    function displayAcceptedRequests(userId) {
+        const acceptedList = document.getElementById('acceptedRequestsList');
+        acceptedList.innerHTML = ''; // Clear existing content
+
+        db.collection("Friendship")
+            .where("receiver", "==", userId)
+            .where("status", "==", "Accepted")
+            .onSnapshot(snapshot => {
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    // Use the helper function to fetch the username and create the list item
+                    addRequestToList(acceptedList, data.sender, "Accepted");
+                });
+
+                // If there are no accepted requests
+                if (acceptedList.children.length === 0) {
+                    acceptedList.innerHTML = '<div class="list-group-item">No accepted requests.</div>';
+                }
+            }, err => {
+                acceptedList.innerHTML = '<div class="list-group-item">Error loading requests.</div>';
+                console.error("Error fetching accepted requests:", err);
+            });
+    }
+
+    function displayRejectedRequests(userId) {
+        const rejectedList = document.getElementById('rejectedRequestsList');
+        rejectedList.innerHTML = ''; // Clear existing content
+
+        db.collection("Friendship")
+            .where("receiver", "==", userId)
+            .where("status", "==", "Rejected")
+            .onSnapshot(snapshot => {
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    // Use the helper function to fetch the username and create the list item
+                    addRequestToList(rejectedList, data.sender, "Rejected");
+                });
+
+                // If there are no rejected requests
+                if (rejectedList.children.length === 0) {
+                    rejectedList.innerHTML = '<div class="list-group-item">No rejected requests.</div>';
+                }
+            }, err => {
+                rejectedList.innerHTML = '<div class="list-group-item">Error loading requests.</div>';
+                console.error("Error fetching rejected requests:", err);
+            });
+    }
+
+    // Event listener for DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', function() {
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user) {
+                populateUserDropdown();
+                displayIncomingRequests();
+                displayAcceptedRequests(user.uid);
+                displayRejectedRequests(user.uid);
+            } else {
+                showToast("Please sign in to send and manage friend requests.", 'alert-warning');
+            }
+        });
+    });
+    document.addEventListener('DOMContentLoaded', function() {
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user) {
+                populateUserDropdown(); // Populate dropdown when user is signed in
+                // Set up the event listener for the 'Make Request' button
+                document.getElementById('makeRequestBtn').addEventListener('click', function() {
+                    const receiverId = document.getElementById('userDropdown').value;
+                    if (receiverId) {
+                        sendFriendRequest(user.uid, receiverId);
+                    } else {
+                        showToast("Please select a user to send a friend request.", 'alert-warning');
+                    }
+                });
+
+                // Add other initialization code if needed
+                // ...
+            } else {
+                showToast("Please sign in to send and manage friend requests.", 'alert-warning');
+            }
+        });
+    });
 </script>
 </body>
 </html>

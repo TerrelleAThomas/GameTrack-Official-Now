@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friendship Status Report</title>
+    <style>
+        /* General body styling */
+        body {
+            background-image: url("Done.jpg");
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 40px;
+            background-color: #f4f4f9;
+            color: #6610f2;
+        }
+
+        /* Header styling */
+        h1 {
+            font-size: 24px;
+            color: #dfe0e1;
+        }
+
+        /* Styling for the button */
+        button {
+            background-color: #007bff;
+            color: #ffffff;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Container for results */
+        #results {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 5px 5px 5px rgba(159, 90, 253);
+        }
+
+        /* Paragraph styling within the results container */
+        p {
+            font-size: 16px;
+            line-height: 1.5;
+            font-weight: bold;
+        }
+        button{
+            background-color: #6610f2;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<h1>Friendship Status Report</h1>
+<button onclick="updateUIWithFriendshipCounts()">Get Friendship Status Counts</button>
+<div id="results">
+    <p id="acceptedCount">Accepted: 0</p>
+    <p id="rejectedCount">Rejected: 0</p>
+    <p id="requestedCount">Requested: 0</p>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+<script>
+    // Your Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyD18a6bP6Ec0QCsLm5bl04prN_WAchA4Is",
+        authDomain: "gamtrack-3a2f2.firebaseapp.com",
+        projectId: "gamtrack-3a2f2",
+        storageBucket: "gamtrack-3a2f2.appspot.com",
+        messagingSenderId: "492662811532",
+        appId: "1:492662811532:web:4e59f354ffbc43eee384a9",
+        measurementId: "G-5VTT1HQLJ1"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    async function countFriendshipStatuses() {
+        const statuses = { accepted: 0, rejected: 0, requested: 0 };
+
+        const acceptedQuery = await db.collection('Friendship').where('status', '==', 'Accepted').get();
+        statuses.accepted = acceptedQuery.size;
+
+        const rejectedQuery = await db.collection('Friendship').where('status', '==', 'Rejected').get();
+        statuses.rejected = rejectedQuery.size;
+
+        const requestedQuery = await db.collection('Friendship').where('status', '==', 'Requested').get();
+        statuses.requested = requestedQuery.size;
+
+        return statuses;
+    }
+
+    async function updateUIWithFriendshipCounts() {
+        const counts = await countFriendshipStatuses();
+
+        document.getElementById('acceptedCount').textContent = `Accepted: ${counts.accepted}`;
+        document.getElementById('rejectedCount').textContent = `Rejected: ${counts.rejected}`;
+        document.getElementById('requestedCount').textContent = `Requested: ${counts.requested}`;
+    }
+</script>
+</body>
+</html>
