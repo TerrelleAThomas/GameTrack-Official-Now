@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!--suppress ALL -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -28,10 +29,6 @@
             left: 50%;
             transform: translate(-50%, -50%);
             z-index: 1050; /* Higher than most elements */
-        }
-        .spinner-border {
-            width: 3rem;
-            height: 3rem;
         }
         h2, h3 {
             font-weight: bold;
@@ -298,7 +295,6 @@
                                 `;
                                     requestsList.appendChild(requestItem);
                                 } else {
-                                    // Handle the case where user document doesn't exist
                                     console.error("User document not found for sender ID: ", requestData.sender);
                                 }
                             }).catch(error => {

@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!--suppress HtmlUnknownTarget -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -11,12 +12,16 @@
             background-color: #f8f9fa;
             padding-top: 50px;
             color: #212529;
+            background-image: url("P.jpg");
         }
         .card {
             margin-bottom: 20px;
             border: none;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 5px 10px #800080;
+        }
+        h2{
+            color: #dfe0e1;
         }
     </style>
 </head>
@@ -63,9 +68,8 @@
     </div>
 </nav>
 
-<<div class="container mt-5">
+<div class="container mt-5">
     <h2 class="mb-4">Recommended Games</h2>
-
     <div class="row" id="gameList">
         <!-- Game cards will be dynamically added here -->
     </div>
@@ -79,6 +83,7 @@
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-auth.js"></script>
 
 <script>
     const firebaseConfig = {
@@ -92,33 +97,95 @@
     };
     firebase.initializeApp(firebaseConfig);
 
+    firebase.auth().onAuthStateChanged(function(user) {
+        if (user) {
+            // User is signed in, now we can safely fetch the uid
+            fetchGameRecommendations();
+        } else {
+            // No user is signed in.
+            console.log('No user is signed in.');
+        }
+    });
+
+
     // Function to fetch game recommendations from Firebase Firestore based on user's genre preference
     // Function to fetch game recommendations from Firebase Firestore based on genre "Sports"
     function fetchGameRecommendations() {
-        const gamesRef = firebase.firestore().collection('Game').where('Genre', '==', 'Sports');
+        const user = firebase.auth().currentUser;
+        if (!user) {
+            console.log('No user is signed in.');
+            return; // Exit the function if no user is signed in
+        }
+        const userId = user.uid;
 
-        gamesRef.get().then((querySnapshot) => {
-            querySnapshot.forEach((doc) => {
-                const game = doc.data();
-                addGameCard(game);
-            });
+        // Reference to the User collection
+        const userRef = firebase.firestore().collection('User').doc(userId);
+
+        userRef.get().then((doc) => {
+            if (doc.exists) {
+                // Extract the user's genre preference and username
+                const userData = doc.data();
+                const userGenrePreference = userData['Genre Preference'];
+                const username = userData.username; // Assuming 'username' is the field name
+
+                if (!userGenrePreference) {
+                    console.log('No genre preference found for this user.');
+                    return; // Exit if no genre preference is set
+                }
+
+                console.log(`Fetching game recommendations for ${username} who prefers ${userGenrePreference} games.`);
+
+                // Fetch games based on the user's genre preference
+                const gamesRef = firebase.firestore().collection('Game').where('Genre', '==', userGenrePreference);
+
+                gamesRef.get().then((querySnapshot) => {
+                    if (querySnapshot.empty) {
+                        console.log(`No games found matching ${username}'s genre preference.`);
+                        return; // Exit if no games found
+                    }
+                    querySnapshot.forEach((doc) => {
+                        const game = doc.data();
+                        addGameCard(game); // Call a function to add each game to the UI
+                    });
+                }).catch((error) => {
+                    console.error('Error fetching games based on genre preference:', error);
+                });
+
+            } else {
+                console.log('User document does not exist.');
+            }
         }).catch((error) => {
-            console.error('Error fetching game recommendations:', error);
+            console.error('Error fetching user document:', error);
         });
     }
 
     // Function to add a game card dynamically
     function addGameCard(game) {
+        // Get the element where game cards will be added
         const gameList = document.getElementById('gameList');
-        let cardHtml = `<div class="col-md-4 mb-4"><div class="card"><div class="card-body">`;
+
+        // Create the column and card elements
+        const colDiv = document.createElement('div');
+        colDiv.className = 'col-md-4 mb-4';
+
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'card';
+
+        const cardBodyDiv = document.createElement('div');
+        cardBodyDiv.className = 'card-body';
 
         // Iterate through all fields in the game object and display their values
         Object.entries(game).forEach(([key, value]) => {
-            cardHtml += `<p class="card-text"><strong>${key}:</strong> ${value}</p>`;
+            const p = document.createElement('p');
+            p.className = 'card-text';
+            p.innerHTML = `<strong>${key}:</strong> ${value}`;
+            cardBodyDiv.appendChild(p);
         });
 
-        cardHtml += `</div></div></div>`;
-        gameList.innerHTML += cardHtml;
+        // Build the card structure
+        cardDiv.appendChild(cardBodyDiv);
+        colDiv.appendChild(cardDiv);
+        gameList.appendChild(colDiv);
     }
 
     // Call the function to fetch game recommendations when the page loads

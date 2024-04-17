@@ -170,7 +170,7 @@
 
     function addPost() {
         const title = document.getElementById('postTitle').value.trim();
-        const content = document.getElementById('postContent').value.trim();
+        const content = document.getElementById('postContainer').value.trim();
         db.collection("Post").add({
             title,
             content,
@@ -307,7 +307,7 @@
                     commentElement.innerHTML = `
                     <div class="d-flex justify-content-between align-items-center">
                         <p class="comment-body">${comment.comment}</p>
-                        <button class="btn btn-secondary onclick="flagComment('your_comment_id')">Flag Comment</button>
+                        <button class="btn btn-secondary onclick=" flagComment('your_comment_id')">Flag Comment</button>
 
                     </div>
                 `;
@@ -385,7 +385,8 @@
     }
 
     function updatePost(postId) {
-        const postContentElement = document.getElementById(`post-content_${postId}`);
+        const postContainer = document.getElementById('postContainer'); // Get the post container
+        const postContentElement = postContainer.querySelector(`#post-content_${postId}`); // Use querySelector with the specific postId
         const currentContent = postContentElement.textContent;
         const newContent = prompt('Update your post:', currentContent);
 
@@ -401,7 +402,7 @@
             }).catch((error) => {
                 console.error("Error updating post: ", error);
                 alert('An error occurred while updating the post.');
-                // Revert the UI back to the original content in case of an error
+                // Revert the UI to the original content in case of an error
                 postContentElement.textContent = currentContent;
             });
         }
