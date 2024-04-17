@@ -17,7 +17,10 @@
 
         /* CSS for the flagged item details */
         .flagged-item p {
-            margin: 5px 0;
+            font-size: 14px;
+            color: #333;
+            margin: 0; /* Adjust as needed */
+            /* Add additional styling here */
         }
 
         /* Optional: Hover effect */
@@ -99,7 +102,7 @@
             border-radius: 10px; /* Rounded corners */
             margin-bottom: 20px; /* Space between cards */
             padding: 15px; /* Padding inside each card */
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Subtle shadow for depth */
+            box-shadow: 0 2px 8px rgb(0, 255, 0);  /* Subtle shadow for depth */
         }
 
         .flagged-item-card button {
@@ -109,6 +112,7 @@
             border-radius: 4px; /* Rounded corners */
             margin-top: 10px; /* Space above the button */
         }
+
     </style>
 </head>
 <body>
@@ -174,7 +178,7 @@
 
     function fetchComments() {
         db.collection("Comment")
-            .where("Comment", "==", true) // Filter comments where Comment is true
+            .where("isComment", "==", true) // Filter comments where Comment is true
             .onSnapshot((querySnapshot) => {
                 const commentsContainer = document.getElementById('comments-container');
                 commentsContainer.innerHTML = '';
@@ -190,6 +194,7 @@
                     <small>Posted on: ${postedDate}</small>
                     <div class="action-buttons">
                         <button class="btn btn-danger" onclick="removeComment('${commentId}')">Remove</button>
+                        <button class="btn-dark" onclick="flagComment('commentId')">Flag</button>
                     </div>
                 `;
                     commentsContainer.appendChild(commentElement);
@@ -321,32 +326,61 @@
 
     function fetchFlaggedItems() {
         const flaggedItemsContainer = document.getElementById('flagged-items-container');
-        db.collection("Flag").where("Flagged", "==", true).get()
-            .then((querySnapshot) => {
-                flaggedItemsContainer.innerHTML = ''; // Clear previous content
-                querySnapshot.forEach((doc) => {
-                    const flaggedItem = doc.data();
-                    const flaggedItemElement = document.createElement('div');
-                    flaggedItemElement.classList.add('flagged-item'); // Add a class for styling
 
-                    // Loop through all fields in the document and append them to the HTML element
-                    Object.keys(flaggedItem).forEach((key) => {
-                        const fieldElement = document.createElement('p');
-                        if (key === "FlaggedAt") {
-                            const timestamp = new Date(flaggedItem[key].seconds * 1000); // Convert Firestore timestamp to JavaScript Date object
-                            fieldElement.textContent = `${key}: ${timestamp.toLocaleString()}`; // Format the date and time
-                        } else {
-                            fieldElement.textContent = `${key}: ${flaggedItem[key]}`;
-                        }
-                        flaggedItemElement.appendChild(fieldElement);
-                    });
+        // Fetch items where 'Flagged' is true
+        const query1 = db.collection("Flag").where("Flagged", "==", true).get();
 
-                    flaggedItemsContainer.appendChild(flaggedItemElement);
-                });
-            })
-            .catch((error) => {
-                console.error("Error fetching flagged items: ", error);
+        // Fetch items where 'isFlagged' is true
+        const query2 = db.collection("Flag").where("isFlagged", "==", true).get();
+
+        Promise.all([query1, query2]).then((results) => {
+            const uniqueDocs = new Map();
+
+            // Process the first query results
+            results[0].forEach((doc) => {
+                uniqueDocs.set(doc.id, doc.data());
             });
+
+            // Process the second query results, adding only if not already present
+            results[1].forEach((doc) => {
+                if (!uniqueDocs.has(doc.id)) {
+                    uniqueDocs.set(doc.id, doc.data());
+                }
+            });
+
+            // Clear previous content
+            flaggedItemsContainer.innerHTML = '';
+
+            // Iterate over the unique documents and create elements
+            uniqueDocs.forEach((flaggedItem, docId) => {
+                const flaggedItemElement = document.createElement('div');
+                flaggedItemElement.classList.add('flagged-item'); // Add a class for styling
+
+                // Handle the DateFlagged timestamp to format the date
+                if (flaggedItem.DateFlagged) {
+                    const timestamp = new Date(flaggedItem.DateFlagged.seconds * 1000);
+                    const dateElement = document.createElement('p');
+                    dateElement.textContent = `Posted on: ${timestamp.toLocaleString()}`;
+                    flaggedItemElement.appendChild(dateElement);
+                }
+
+                // Loop through other fields in the document
+                ['userId', 'postId'].forEach((key) => {
+                    if (flaggedItem[key]) { // Check if the key exists
+                        const fieldElement = document.createElement('p');
+                        // Format the output text, remove the path if present
+                        let value = flaggedItem[key].includes('/') ? flaggedItem[key].split('/').pop() : flaggedItem[key];
+                        fieldElement.textContent = `${value}`;
+                        flaggedItemElement.appendChild(fieldElement);
+                    }
+                });
+
+                // Append the constructed div to the container
+                flaggedItemsContainer.appendChild(flaggedItemElement);
+            });
+        }).catch((error) => {
+            console.error("Error fetching flagged items: ", error);
+        });
     }
 
     // Call fetchFlaggedItems function to populate flagged items on page load

@@ -31,30 +31,30 @@
             font-weight: bold;
             font-size: 30px;
         }
-         .post-card {
+         .post-comment-card {
              background-color: #ffffff; /* White background */
              border: 1px solid #800080; /* Light grey border */
              border-radius: 8px; /* Rounded corners */
              box-shadow: 0 2px 4px rgb(0, 255, 0); /* Slight shadow */
              margin-bottom: 20px; /* Space between cards */
+             font-weight: bold;
+             font-family: "Times New Roman", Times, serif;
          }
 
-        .post-card .card-body {
+        .post-comment-card .card-body {
             padding: 20px; /* Padding inside the card */
         }
 
-        .post-card .card-title {
+        .post-comment-card .card-title {
             margin-bottom: 15px; /* Space below the title */
             color: #333; /* Dark grey color for text */
             font-size: 24px; /* Larger font size */
         }
 
-        .post-card .card-text {
+        .post-comment-card .card-text {
             color: #666; /* Medium grey color for text */
             font-size: 24px; /* Standard text size */
         }
-
-        /* Add more styles as needed */
     </style>
 
 </head>
@@ -141,7 +141,9 @@
 
 
 
+
 <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js"></script>
 <script>
     const firebaseConfig = {
@@ -200,17 +202,19 @@
                     const postElement = document.createElement('div');
                     postElement.classList.add('post-card'); // Apply the post-card class
                     postElement.innerHTML = `
-                    <div class="card-body">
-                        <h5 class="card-title">${post.title}</h5>
-                        <p class="card-text">${post.content}</p>
-                        <div class="comments" id="comments-${postId}"></div>
+                <div class="card-body" >
+                    <h5 class="card-title">${post.title}</h5>
+                    <p class="card-text">${post.content}</p>
+                    <div class="comments" id="comments-${postId}"></div>
+                    <div class="action-buttons d-flex"> <!-- This div will align the buttons in a row -->
                         <input type="text" id="comment-input-${postId}" class="form-control mt-2" placeholder="Write a comment...">
                         <button onclick="submitComment('${postId}')" class="btn btn-primary mt-2">Comment</button>
                         <button onclick="flagPost('${postId}')" class="btn btn-warning mt-2">Flag Post</button>
                         <button class="btn btn-primary" onclick="updatePost('${postId}')">Update</button>
-                       <button class="btn btn-danger" onclick="removePost('${postId}')">Remove</button>
+                        <button class="btn btn-danger" onclick="removePost('${postId}')">Remove</button>
                     </div>
-                `;
+                </div>
+            `;
                     postContainer.appendChild(postElement);
                     loadComments(postId); // Load comments for this post
                 });
@@ -224,42 +228,81 @@
         // Extract the comment text and trim any leading/trailing whitespace
         const commentText = commentInput.value.trim();
 
-        // Fetch the username from Firestore (assuming you have a default or anonymous username)
-        const username = "Anonymous";
+        // Get the current user's username from Firebase Authentication
+        getCurrentUserUsername().then(username => {
+            if (username) {
+                // Add the comment to the "Comment" collection in Firestore
+                db.collection("Comment").add({
+                    postId,
+                    comment: commentText,
+                    username: username, // Use the fetched username here
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    isComment: true,
+                })
+                    .then(() => {
+                        // Clear the comment input field after submission
+                        commentInput.value = '';
 
-        // Add the comment to the "Comment" collection in Firestore
-        db.collection("Comment").add({
-            postId,
-            comment: commentText,
-            username: username,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        })
-            .then(() => {
-                // Clear the comment input field after submission
-                commentInput.value = '';
+                        // Update the UI by appending the new comment
+                        const commentsContainer = document.getElementById(`comments-${postId}`);
+                        const commentElement = document.createElement('div');
+                        commentElement.classList.add('comment');
+                        // Construct the HTML for the comment
+                        commentElement.innerHTML = `
+                    <p class="comment-body">
+                        <strong>${username}</strong>: ${commentText}
+                        <button class="flag-button" onclick="flagComment('commentId')">Flag</button>
+                    </p>`;
+                        // Append the comment element to the comments container
+                        commentsContainer.appendChild(commentElement);
+                    })
+                    .catch(error => {
+                        // Handle any errors that occur during adding the comment
+                        console.error("Error adding comment: ", error);
+                    });
+            } else {
+                // No username found, handle accordingly
+                console.log("The user is not signed in or does not have a username.");
+            }
+        }).catch(error => {
+            // Handle any errors that occur during fetching the username
+            console.error("Error fetching user information: ", error);
+        });
+    }
 
-                // Update the UI by appending the new comment
-                const commentsContainer = document.getElementById(`comments-${postId}`);
-                const commentElement = document.createElement('div');
-                commentElement.classList.add('comment');
-                // Construct the HTML for the comment
-                commentElement.innerHTML = `<p class="comment-body"><strong>${username}</strong>: ${commentText}</p>`;
-                // Append the comment element to the comments container
-                commentsContainer.appendChild(commentElement);
-            })
-            .catch(error => {
-                // Handle any errors that occur during adding the comment
-                console.error("Error adding comment: ", error);
-            });
+    function getCurrentUserUsername() {
+        // Check if a user is signed in.
+        const user = firebase.auth().currentUser;
+        if (user) {
+            // User is signed in, now get the username from the User collection
+            return db.collection("User").doc(user.uid).get()
+                .then(doc => {
+                    if (doc.exists) {
+                        // User document was found
+                        const userData = doc.data();
+                        return userData.username; // Return the username
+                    } else {
+                        // No user document was found, return null or a default username
+                        return "Anonymous"; // This will show Anonymous if there is no user document found
+                    }
+                })
+                .catch(error => {
+                    console.error("Error getting user data: ", error);
+                    return "Anonymous"; // In case of any error, return "Anonymous"
+                });
+        } else {
+            // No user is signed in.
+            return Promise.resolve("Anonymous"); // Automatically resolve to "Anonymous"
+        }
     }
 
     // Function to fetch comments associated with a postId
     function fetchComments(postId) {
         // Get the comments container
-        const commentsContainer = document.getElementById(`comments-${postId}`);
+        const commentContainer = document.getElementById(`comments-${postId}`);
 
         // Clear existing comments before fetching new ones
-        commentsContainer.innerHTML = '';
+        commentContainer.innerHTML = '';
 
         // Fetch comments from Firestore for the specific postId
         db.collection("Comment").where("postId", "==", postId).get()
@@ -274,22 +317,26 @@
                     const commentElement = document.createElement('div');
                     commentElement.classList.add('comment');
                     // Construct the HTML for the comment
-                    commentElement.innerHTML = `<p class="comment-body"><strong>${username}</strong>: ${comment}</p>`;
+                    commentElement.innerHTML = `
+                    <p class="comment-body">
+                        <strong>${username}</strong>: ${comment}
+                        <button class="btn btn-warning mt-2" onclick="flagComment('${doc.id}')">Flag</button>
+                    </p>`;
                     // Append the comment element to the comments container
-                    commentsContainer.appendChild(commentElement);
+                    commentContainer.appendChild(commentElement);
                 });
             })
             .catch(error => {
                 console.error("Error fetching comments: ", error);
             });
-    }
+    };
 
     // Call fetchComments function when the page loads
     window.addEventListener('load', () => {
         // Specify the postId for which you want to fetch comments
         const postId = "your_post_id_here"; // Replace "your_post_id_here" with the actual postId
         // Call fetchComments function to load comments associated with the specified postId
-        fetchComments(postId);
+        fetchComments(postId)
     });
 
 
@@ -307,7 +354,7 @@
                     commentElement.innerHTML = `
                     <div class="d-flex justify-content-between align-items-center">
                         <p class="comment-body">${comment.comment}</p>
-                        <button class="btn btn-secondary onclick=" flagComment('your_comment_id')">Flag Comment</button>
+                        <button  onclick=" flagComment('commentId')" class="btn btn-secondary">Flag Comment</button>
 
                     </div>
                 `;
@@ -320,53 +367,56 @@
 
     // Add flagging functions
     function flagPost(postId) {
-        const userId = "CURRENT_USER_ID"; // Replace with the current user's ID from authentication context
-        db.collection("Flag").add({
-            DateFlagged: firebase.firestore.Timestamp.now(),
-            Flagged: true, // Setting Flagged field as a boolean value
-            postId: `/Post/${postId}`,
-            userId: `/User/${userId}`
-        })
-            .then((docRef) => {
-                // Optionally, update the flag document with its own ID in the FlagId field
-                db.collection("Flags").doc(docRef.id).update({ FlagId: docRef.id });
-                alert("Post flagged for review.");
+        getCurrentUserUsername().then(username => {
+            db.collection("Flag").add({
+                DateFlagged: firebase.firestore.Timestamp.now(),
+                Flagged: true,
+                postId: `/Post/${postId}`,
+                username: username // Use the username instead of the userID
             })
-            .catch((error) => {
-                console.error("Error flagging post: ", error);
-            });
+                .then((docRef) => {
+                    // Optionally, update the flag document with its own ID in the FlagId field
+                    db.collection("Flag").doc(docRef.id).update({ FlagId: docRef.id });
+                    alert("Post flagged for review.");
+                })
+                .catch((error) => {
+                    console.error("Error flagging post: ", error);
+                });
+        });
     }
 
 
 
     function flagComment(commentId) {
-        const userId = "CURRENT_USER_ID"; // Replace with the current user's ID from authentication context
-        db.collection("Flag").add({
-            DateFlagged: firebase.firestore.Timestamp.now(),
-            Flagged: true, // Setting Flagged field as a boolean value
-            commentId: `/Comment/${commentId}`,
-            reason: "", // Assuming reason is not collected; provide UI for input if needed
-            userId: `/User/${userId}`
-        })
-            .then((docRef) => {
-                // Optionally, update the flag document with its own ID in the FlagId field
-                return db.collection("Flag").doc(docRef.id).update({ FlagId: docRef.id });
+        getCurrentUserUsername().then(username => {
+            db.collection("Flag").add({
+                DateFlagged: firebase.firestore.Timestamp.now(),
+                isFlagged: true,
+                commentId: `/Comment/${commentId}`,
+                reason: "", // Assuming reason is not collected; provide UI for input if needed
+                username: username // Use the username instead of the userID
             })
-            .then(() => {
-                alert("Comment flagged for review.");
-            })
-            .catch((error) => {
-                console.error("Error flagging comment: ", error);
-            });
+                .then((docRef) => {
+                    // Optionally, update the flag document with its own ID in the FlagId field
+                    return db.collection("Flag").doc(docRef.id).update({ FlagId: docRef.id });
+                })
+                .then(() => {
+                    alert("Comment flagged for review.");
+                })
+                .catch((error) => {
+                    console.error("Error flagging comment: ", error);
+                });
+        });
     }
 
     function fetchPosts() {
         db.collection("Post").orderBy("timestamp", "desc").onSnapshot((querySnapshot) => {
-            const postsContainer = document.getElementById('posts-container');
+            const postsContainer = document.getElementById('postContainer');
             postsContainer.innerHTML = ''; // Clear existing posts
             querySnapshot.forEach((doc) => {
                 const postData = doc.data();
-                const postId = doc.id;
+                const postId = postData.postId;
+                console.log(postData);
                 const postedDate = postData.timestamp ? new Date(postData.timestamp.seconds * 1000).toLocaleString() : 'Unknown';
                 const postElement = document.createElement('div');
                 postElement.classList.add('post-comment-card');
@@ -374,12 +424,17 @@
                 postElement.innerHTML = `
                 <p id="post-content_${postId}">${postData.content || 'No content provided.'}</p>
                 <small>Posted on: ${postedDate}</small>
+                                        <input type="text" id="comment-input-${postId}" class="form-control mt-2" placeholder="Write a comment...">
+                <div id="comments-${postId}"> </div>
                 <div class="action-buttons">
                     <button class="btn btn-primary" onclick="updatePost('${postId}')">Update</button>
-                    <button class="btn btn-danger" onclick="removePost('${postId}')">Remove</button>
+                    <button class="btn btn-danger" onclick="removePost('${postId}')">Remove</button><div class="comments" id="comments-${postId}"></div>
+                        <button onclick="submitComment('${postId}')" class="btn btn-primary mt-2">Comment</button>
+                        <button onclick="flagPost('${postId}')" class="btn btn-warning mt-2">Flag Post</button>
                 </div>
             `;
                 postsContainer.appendChild(postElement);
+                fetchComments(postId);
             });
         });
     }

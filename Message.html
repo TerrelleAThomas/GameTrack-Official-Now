@@ -285,11 +285,18 @@ h2{
 
   // Function to enable/disable Send button
   function toggleSendButton() {
-    var receiverInput = document.getElementById("receiverInput").value.trim();
-    var messageInput = document.getElementById("messageInput").value.trim();
-    var sendButton = document.getElementById("sendButton");
-    sendButton.disabled = !(receiverInput && messageInput);
+    var messageInput = document.getElementById("anotherMessageInput").value.trim();
+    var sendButton = document.getElementById("anotherSendButton");
+    sendButton.disabled = !messageInput;
   }
+
+  // Add event listener to the message input field
+  document.getElementById("anotherMessageInput").addEventListener("input", toggleSendButton);
+
+  // Event listener for the Send button
+  document.getElementById("anotherSendButton").addEventListener("click", function() {
+    addToAdminCollection();
+  });
 
   // Add event listeners to input fields
   function sendMessage() {
