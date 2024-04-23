@@ -315,18 +315,23 @@
         const acceptedList = document.getElementById('acceptedRequestsList');
         acceptedList.innerHTML = ''; // Clear existing content
 
+        // Query to find all accepted requests where the user is either the sender or the receiver
         db.collection("Friendship")
-            .where("receiver", "==", userId)
             .where("status", "==", "Accepted")
             .onSnapshot(snapshot => {
+                let hasData = false;
+
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    // Use the helper function to fetch the username and create the list item
-                    addRequestToList(acceptedList, data.sender, "Accepted");
+                    if (data.sender === userId || data.receiver === userId) {
+                        // Use the helper function to fetch the username and create the list item
+                        addRequestToList(acceptedList, data.sender === userId ? data.receiver : data.sender, "Accepted");
+                        hasData = true;
+                    }
                 });
 
                 // If there are no accepted requests
-                if (acceptedList.children.length === 0) {
+                if (!hasData) {
                     acceptedList.innerHTML = '<div class="list-group-item">No accepted requests.</div>';
                 }
             }, err => {
@@ -339,18 +344,23 @@
         const rejectedList = document.getElementById('rejectedRequestsList');
         rejectedList.innerHTML = ''; // Clear existing content
 
+        // Query to find all rejected requests where the user is either the sender or the receiver
         db.collection("Friendship")
-            .where("receiver", "==", userId)
             .where("status", "==", "Rejected")
             .onSnapshot(snapshot => {
+                let hasData = false;
+
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    // Use the helper function to fetch the username and create the list item
-                    addRequestToList(rejectedList, data.sender, "Rejected");
+                    if (data.sender === userId || data.receiver === userId) {
+                        // Use the helper function to fetch the username and create the list item
+                        addRequestToList(rejectedList, data.sender === userId ? data.receiver : data.sender, "Rejected");
+                        hasData = true;
+                    }
                 });
 
                 // If there are no rejected requests
-                if (rejectedList.children.length === 0) {
+                if (!hasData) {
                     rejectedList.innerHTML = '<div class="list-group-item">No rejected requests.</div>';
                 }
             }, err => {
