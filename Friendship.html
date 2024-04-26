@@ -208,14 +208,22 @@
             });
     }
 
-    function addRequestToList(list, userId, status) {
+    function addRequestToList(list, userId, status, docId) {
         db.collection("User").doc(userId).get().then(userDoc => {
             if (userDoc.exists) {
                 const user = userDoc.data();
-                const username = user.username; // replace with the actual field name for the username
+                const username = user.username; // Ensure this matches the field name for the username in your database
                 const item = document.createElement('div');
                 item.classList.add('list-group-item');
                 item.textContent = `From: ${username} - Status: ${status}`;
+
+                // Create a delete button
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = "Delete";
+                deleteButton.classList.add('btn', 'btn-danger', 'btn-sm');
+                deleteButton.onclick = function() { deleteFriendship(docId); };
+                item.appendChild(deleteButton);
+
                 list.appendChild(item);
             } else {
                 console.error("User not found:", userId);
@@ -315,7 +323,6 @@
         const acceptedList = document.getElementById('acceptedRequestsList');
         acceptedList.innerHTML = ''; // Clear existing content
 
-        // Query to find all accepted requests where the user is either the sender or the receiver
         db.collection("Friendship")
             .where("status", "==", "Accepted")
             .onSnapshot(snapshot => {
@@ -324,13 +331,12 @@
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     if (data.sender === userId || data.receiver === userId) {
-                        // Use the helper function to fetch the username and create the list item
-                        addRequestToList(acceptedList, data.sender === userId ? data.receiver : data.sender, "Accepted");
+                        // Pass doc.id to addRequestToList
+                        addRequestToList(acceptedList, data.sender === userId ? data.receiver : data.sender, "Accepted", doc.id);
                         hasData = true;
                     }
                 });
 
-                // If there are no accepted requests
                 if (!hasData) {
                     acceptedList.innerHTML = '<div class="list-group-item">No accepted requests.</div>';
                 }
@@ -340,11 +346,11 @@
             });
     }
 
+
     function displayRejectedRequests(userId) {
         const rejectedList = document.getElementById('rejectedRequestsList');
         rejectedList.innerHTML = ''; // Clear existing content
 
-        // Query to find all rejected requests where the user is either the sender or the receiver
         db.collection("Friendship")
             .where("status", "==", "Rejected")
             .onSnapshot(snapshot => {
@@ -353,13 +359,12 @@
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     if (data.sender === userId || data.receiver === userId) {
-                        // Use the helper function to fetch the username and create the list item
-                        addRequestToList(rejectedList, data.sender === userId ? data.receiver : data.sender, "Rejected");
+                        // Pass doc.id to addRequestToList
+                        addRequestToList(rejectedList, data.sender === userId ? data.receiver : data.sender, "Rejected", doc.id);
                         hasData = true;
                     }
                 });
 
-                // If there are no rejected requests
                 if (!hasData) {
                     rejectedList.innerHTML = '<div class="list-group-item">No rejected requests.</div>';
                 }
@@ -367,6 +372,16 @@
                 rejectedList.innerHTML = '<div class="list-group-item">Error loading requests.</div>';
                 console.error("Error fetching rejected requests:", err);
             });
+    }
+
+
+    function deleteFriendship(docId) {
+        db.collection("Friendship").doc(docId).delete().then(() => {
+            console.log("Document successfully deleted!");
+            // Optionally, refresh the list or remove the item from the DOM to update the UI
+        }).catch((error) => {
+            console.error("Error removing document: ", error);
+        });
     }
 
     // Event listener for DOMContentLoaded
