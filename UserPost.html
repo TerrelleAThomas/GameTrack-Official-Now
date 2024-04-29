@@ -128,7 +128,7 @@
             <form id="postForm">
                 <div class="modal-body">
                     <input type="text" id="postTitle" class="form-control mb-2" placeholder="Title" required>
-                    <textarea id="postContent" class="form-control" placeholder="Content" rows="4" required></textarea>
+                    <textarea id="post" class="form-control" placeholder="Content" rows="4" required></textarea>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -170,7 +170,7 @@
 
     function addPost() {
         const title = document.getElementById('postTitle').value.trim();
-        const content = document.getElementById('postContainer').value.trim();
+        const content = document.getElementById('post').value.trim();
         db.collection("Post").add({
             title,
             content,
