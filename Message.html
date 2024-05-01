@@ -246,29 +246,50 @@ h2{
     const searchResultsContainer = document.getElementById('searchResults');
     searchResultsContainer.innerHTML = '';
 
-    // Query Admin collection to get all admin messages where AM field is true
-    db.collection("AMessage")
-            .where("Admin", "==", true)
-            .get()
-            .then((querySnapshot) => {
-              if (!querySnapshot.empty) {
-                // If there are documents where AM field is true, display the admin messages
-                querySnapshot.forEach((doc) => {
-                  const data = doc.data();
-                  const messageElement = document.createElement("div");
-                  messageElement.classList.add("message");
-                  messageElement.innerHTML = `
-                        <p> ${data.content}</p>
-                    `;
-                  searchResultsContainer.appendChild(messageElement);
-                });
-              } else {
-                // If there are no documents where AM field is true, display a message
-                searchResultsContainer.innerHTML = '<p>No admin messages found.</p>';
+    // Get the currently logged-in user
+    const user = firebase.auth().currentUser;
+
+    if (!user) {
+      searchResultsContainer.innerHTML = '<p>No user is currently logged in.</p>';
+      return;
+    }
+
+    // Fetch the username from the User collection using the user ID
+    db.collection("User").doc(user.uid).get()
+            .then(userDoc => {
+              if (!userDoc.exists) {
+                searchResultsContainer.innerHTML = '<p>User profile not found.</p>';
+                return;
               }
+
+              const username = userDoc.data().username;  // Assuming 'username' field is stored in User collection
+
+              // Now, use the username to fetch messages from the AMessage collection
+              db.collection("AMessage")
+                      .where("username", "==", username)
+                      .get()
+                      .then((querySnapshot) => {
+                        if (querySnapshot.empty) {
+                          searchResultsContainer.innerHTML = '<p>No messages found for this user.</p>';
+                        } else {
+                          querySnapshot.forEach((doc) => {
+                            const data = doc.data();
+                            const messageElement = document.createElement("div");
+                            messageElement.classList.add("message");
+                            messageElement.innerHTML = `
+                                <p><strong>User:</strong> ${username}</p>
+                                <p><strong>Message:</strong> ${data.content}</p>
+                            `;
+                            searchResultsContainer.appendChild(messageElement);
+                          });
+                        }
+                      })
+                      .catch((error) => {
+                        console.error("Error loading messages:", error);
+                      });
             })
             .catch((error) => {
-              console.error("Error loading admin messages:", error);
+              console.error("Error fetching user profile:", error);
             });
   }
 
